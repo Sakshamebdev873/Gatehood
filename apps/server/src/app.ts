@@ -7,6 +7,7 @@ import { requireRole } from './middleware/auth.js';
 import { builderRouter } from './routes/builder.js';
 import { importRouter } from './routes/import.js';
 import { invitesRouter } from './routes/invites.js';
+import { builderNoticesRouter, noticesRouter } from './routes/notices.js';
 
 export interface AppOptions {
   /** Adds routes before the 404 and error handlers. Used by tests. */
@@ -31,7 +32,8 @@ export function createApp(deps: Admin & { now?: () => Date }, options: AppOption
   app.use('/api/invites', invitesRouter({ rateLimit: options.rateLimit ?? process.env.NODE_ENV !== 'test' }));
 
   // Everything under /api/builder needs a builder login.
-  app.use('/api/builder', requireRole('builder'), importRouter(), builderRouter());
+  app.use('/api/builder', requireRole('builder'), importRouter(), builderRouter(), builderNoticesRouter());
+  app.use('/api/notices', noticesRouter());
 
   options.extend?.(app);
 
