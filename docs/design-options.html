@@ -1,0 +1,537 @@
+<title>Gatehood Assignment Designs</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=DM+Sans:opsz,wght@9..40,300..700&family=JetBrains+Mono:wght@400..600&display=swap">
+<style>
+/* Layout: one reading column for prose, wide rows for phone mockups. Palette and type taken from gatehood.com's own CSS tokens. */
+:root{
+  --bg:#FBF6EE; --surface:#FFFFFF; --inset:#F2F0EB; --fg:#1A1A1A; --muted:#6B6B6B; --faint:#9E9E9E;
+  --line:#E8E4DC; --line-strong:#D0CBC0; --accent:#2D6A4F; --accent-hover:#214E3A; --accent-ink:#FFFFFF;
+  --label:#C2651A; --amber:#F4A261; --rose:#E11D48; --code-bg:#F2F0EB;
+  --serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+  --sans:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1813; --surface:#15231B; --inset:#1B2D23; --fg:#F3EFE6; --muted:#B4B9B2; --faint:#87918A;
+  --line:rgba(255,255,255,.10); --line-strong:rgba(255,255,255,.18); --accent:#6FB386; --accent-hover:#8CC8A0; --accent-ink:#0E1813;
+  --label:#F4A261; --amber:#F4A261; --rose:#FB7185; --code-bg:#15231B; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1813; --surface:#15231B; --inset:#1B2D23; --fg:#F3EFE6; --muted:#B4B9B2; --faint:#87918A;
+  --line:rgba(255,255,255,.10); --line-strong:rgba(255,255,255,.18); --accent:#6FB386; --accent-hover:#8CC8A0; --accent-ink:#0E1813;
+  --label:#F4A261; --amber:#F4A261; --rose:#FB7185; --code-bg:#15231B; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-weight:300;font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0}
+.prose{max-width:680px}
+section{padding-block:56px;border-top:1px solid var(--line)}
+.eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--label);display:flex;align-items:center;gap:12px;margin:0 0 14px}
+.eyebrow::before{content:"";width:26px;height:1px;background:currentColor}
+h1,h2{font-family:var(--serif);font-weight:500;letter-spacing:-.034em;line-height:.98;text-wrap:balance;margin:0}
+h1{font-size:clamp(42px,7vw,76px)}
+h2{font-size:clamp(32px,4.4vw,46px);margin-bottom:14px}
+h1 em,h2 em{font-style:italic;color:var(--accent);font-weight:400}
+h3{font-family:var(--sans);font-size:16px;font-weight:500;margin:0 0 6px}
+p{margin:0 0 12px}
+.lead{font-size:17px;color:var(--muted);max-width:620px;margin-top:18px}
+code,.mono{font-family:var(--mono);font-size:.86em}
+a{color:var(--accent)}
+
+/* hero */
+.hero{padding-block:64px 48px}
+.meta-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:26px}
+.chip{font-family:var(--mono);font-size:11px;letter-spacing:.06em;border:1px solid var(--line-strong);border-radius:999px;padding:5px 11px;color:var(--muted);background:var(--surface)}
+.swatches{display:flex;flex-wrap:wrap;gap:10px;margin-top:34px}
+.sw{display:flex;align-items:center;gap:9px;padding:6px 12px 6px 6px;border:1px solid var(--line);border-radius:999px;background:var(--surface);font-size:12px}
+.sw i{width:22px;height:22px;border-radius:50%;display:block;border:1px solid rgba(0,0,0,.08)}
+.sw b{font-weight:500}
+.sw span{font-family:var(--mono);color:var(--faint);font-size:10.5px}
+.typeline{display:flex;flex-wrap:wrap;gap:28px;margin-top:22px;color:var(--muted);font-size:13px;align-items:baseline}
+.typeline .t1{font-family:var(--serif);font-size:26px;color:var(--fg)}
+.typeline .t1 em{color:var(--accent)}
+.typeline .t2{font-family:var(--sans);font-size:15px;color:var(--fg)}
+.typeline .t3{font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--label)}
+
+/* direction picker */
+.tabs{display:flex;flex-wrap:wrap;gap:10px;margin:26px 0 8px}
+.tab{appearance:none;border:1px solid var(--line-strong);background:var(--surface);color:var(--fg);border-radius:14px;padding:12px 16px;text-align:left;cursor:pointer;font:inherit;min-width:0;flex:1 1 220px;transition:border-color .15s,background .15s}
+.tab:hover{border-color:var(--accent)}
+.tab:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tab[aria-selected="true"]{border-color:var(--accent);background:var(--inset);box-shadow:inset 0 0 0 1px var(--accent)}
+.tab .k{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--label)}
+.tab .n{display:block;font-family:var(--serif);font-size:24px;line-height:1.1;margin:3px 0 2px}
+.tab .d{display:block;font-size:13px;color:var(--muted)}
+.rec{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;background:var(--accent);color:var(--accent-ink);padding:2px 7px;border-radius:999px;margin-left:6px;vertical-align:2px}
+.dir-note{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin:22px 0 6px;max-width:900px}
+.dir-note>div{min-width:0}
+.dir-note h3{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:500}
+@media (max-width:640px){.dir-note{grid-template-columns:1fr}}
+
+.gallery{overflow-x:auto;margin-top:22px;padding:8px 2px 18px}
+.phones{display:flex;gap:26px;width:max-content;margin:0 auto}
+.cap{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);text-align:center;margin-top:12px}
+
+/* ---------- phone mockups: each direction is a skin over the same markup ---------- */
+.phone{width:262px;flex:none;border-radius:42px;padding:9px;background:#161616;box-shadow:0 30px 60px -30px rgba(20,45,33,.45),0 0 0 1px rgba(0,0,0,.25)}
+.screen{
+  --s-bg:#FBF8F2; --s-card:#FFFFFF; --s-ink:#1A1A1A; --s-muted:#6B6B6B; --s-faint:#9E9E9E; --s-line:#E8E4DC;
+  --s-accent:#2D6A4F; --s-accent-ink:#FFFFFF; --s-em:#2D6A4F; --s-label:#C2651A; --s-inset:#F2F0EB; --s-dot:#E07A2F;
+  --s-err:#BE123C; --s-display:var(--serif); --s-dw:500; --s-emstyle:italic; --s-r:14px; --s-dsize:27px;
+  height:548px;border-radius:33px;overflow:hidden;background:var(--s-bg);color:var(--s-ink);font-family:var(--sans);font-weight:300;font-size:12px;line-height:1.45;display:flex;flex-direction:column;position:relative}
+[data-dir="b"] .screen{
+  --s-bg:#0F1D16; --s-card:#172A20; --s-ink:#F3EFE6; --s-muted:rgba(243,239,230,.68); --s-faint:rgba(243,239,230,.45); --s-line:rgba(255,255,255,.09);
+  --s-accent:#6FB386; --s-accent-ink:#0F1D16; --s-em:#F4A261; --s-label:#F4A261; --s-inset:#1D3328; --s-dot:#F4A261; --s-err:#FB7185}
+[data-dir="c"] .screen{
+  --s-bg:#F2F0EB; --s-card:#FFFFFF; --s-ink:#1A1A1A; --s-muted:#5E5E5E; --s-faint:#8E8E8E; --s-line:#D9D4C9;
+  --s-accent:#214E3A; --s-em:#2D6A4F; --s-label:#2D6A4F; --s-inset:#E8E4DC; --s-dot:#C2651A;
+  --s-display:var(--sans); --s-dw:600; --s-emstyle:normal; --s-r:6px; --s-dsize:21px}
+.status{display:flex;justify-content:space-between;align-items:center;padding:12px 22px 0;font-size:11px;font-weight:600}
+.island{position:absolute;top:9px;left:50%;transform:translateX(-50%);width:82px;height:23px;background:#000;border-radius:20px}
+.sig{font-family:var(--mono);font-size:9px;letter-spacing:.05em}
+.body{flex:1;padding:16px 16px 0;display:flex;flex-direction:column;gap:11px;min-height:0;overflow:hidden}
+.topbar{display:flex;justify-content:space-between;align-items:center}
+.proj{font-family:var(--s-display);font-size:15px;font-weight:var(--s-dw);letter-spacing:-.01em}
+.unitchip{font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--s-muted);border:1px solid var(--s-line);border-radius:999px;padding:3px 8px}
+.s-eye{font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--s-label)}
+.s-h{font-family:var(--s-display);font-weight:var(--s-dw);font-size:var(--s-dsize);line-height:.98;letter-spacing:-.034em;margin:0}
+.s-h em{font-style:var(--s-emstyle);color:var(--s-em);font-weight:400}
+[data-dir="c"] .s-h em{font-weight:500;color:var(--s-muted);display:block;font-size:13px;letter-spacing:0;margin-top:4px}
+.s-p{color:var(--s-muted);font-size:11.5px;margin:0}
+.card{background:var(--s-card);border:1px solid var(--s-line);border-radius:var(--s-r);padding:11px 12px}
+.row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.big{font-family:var(--s-display);font-weight:var(--s-dw);font-size:30px;line-height:1;letter-spacing:-.034em;font-variant-numeric:tabular-nums}
+[data-dir="c"] .big{font-size:24px}
+.bar{height:5px;border-radius:5px;background:var(--s-inset);overflow:hidden;margin-top:8px}
+.bar>i{display:block;height:100%;background:var(--s-accent);border-radius:5px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.small{font-size:10.5px;color:var(--s-muted)}
+.tabbar{display:flex;justify-content:space-around;border-top:1px solid var(--s-line);padding:8px 0 16px;margin-top:auto;font-size:9.5px;color:var(--s-faint);background:var(--s-bg)}
+.tabbar>span{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:56px}
+.tabbar .ic{position:relative;display:block;width:22px;height:22px}
+.tabbar svg{width:22px;height:22px;display:block;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.tabbar .on{color:var(--s-accent);font-weight:600}
+.tabbar .on svg{stroke-width:2.1}
+.badge{display:inline-block;min-width:15px;padding:0 4px;height:15px;border-radius:8px;background:var(--s-dot);color:#fff;font-size:9px;line-height:15px;text-align:center;font-weight:600}
+.tabbar .badge{position:absolute;top:-5px;right:-10px;box-shadow:0 0 0 2px var(--s-bg)}
+.btn{background:var(--s-accent);color:var(--s-accent-ink);border-radius:999px;text-align:center;padding:10px;font-weight:600;font-size:12px}
+[data-dir="c"] .btn{border-radius:6px}
+.btn.ghost{background:transparent;color:var(--s-accent);border:1px solid var(--s-line)}
+.codebox{font-family:var(--mono);font-size:17px;letter-spacing:.18em;text-align:center;padding:13px 8px;border-radius:var(--s-r);border:1.5px solid var(--s-err);background:var(--s-card)}
+.err{color:var(--s-err);font-size:10.5px;line-height:1.4}
+.seg{display:flex;background:var(--s-inset);border-radius:999px;padding:3px;gap:2px}
+[data-dir="c"] .seg{border-radius:6px}
+.seg span{flex:1;text-align:center;padding:5px 0;border-radius:999px;font-size:10.5px;color:var(--s-muted)}
+[data-dir="c"] .seg span{border-radius:4px}
+.seg .on{background:var(--s-card);color:var(--s-ink);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.feed{display:flex;flex-direction:column;gap:7px}
+.item{background:var(--s-card);border:1px solid var(--s-line);border-radius:var(--s-r);padding:9px 11px;display:grid;grid-template-columns:1fr auto;gap:2px 8px}
+.item .t{font-weight:600;font-size:11.5px;line-height:1.3}
+.item .when{font-size:9.5px;color:var(--s-faint);font-family:var(--mono);align-self:start;display:flex;align-items:center;gap:5px}
+.item .when::after{content:"";width:6px;height:6px;border-radius:50%;background:var(--s-dot)}
+.item.read{background:transparent}
+.item.read .t{font-weight:500;color:var(--s-muted)}
+.item.read .when::after{background:transparent}
+.item.pin{border-color:var(--s-accent);box-shadow:inset 3px 0 0 var(--s-accent)}
+[data-dir="c"] .item{border-radius:0;border-width:0 0 1px;background:transparent;padding:8px 2px}
+[data-dir="c"] .item.pin{box-shadow:none;background:var(--s-card);border:1px solid var(--s-accent);padding:8px 9px;border-radius:6px}
+.newpill{align-self:center;background:var(--s-accent);color:var(--s-accent-ink);font-size:9.5px;font-weight:600;padding:4px 10px;border-radius:999px}
+.more{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--s-faint);text-align:center;padding:2px 0 8px}
+.who{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--s-line);font-size:11px}
+.who:last-child{border-bottom:0}
+.who b{font-family:var(--mono);font-weight:500;font-size:10px;color:var(--s-muted)}
+.tower{display:grid;grid-template-columns:54px 1fr 48px;align-items:center;gap:8px;font-size:10.5px}
+.tower .bar{margin:0}
+.tower span:last-child{text-align:right;font-family:var(--mono);font-size:9.5px;color:var(--s-muted)}
+
+/* launch: splash + loading */
+.screen{--s-glow:rgba(244,162,97,.24); --s-mark:#2D6A4F; --s-mark-ink:#FBF8F2; --s-mark-r:22.5%}
+[data-dir="b"] .screen{--s-glow:rgba(111,179,134,.20); --s-mark:#2D6A4F; --s-mark-ink:#F3EFE6}
+[data-dir="c"] .screen{--s-glow:rgba(0,0,0,0); --s-mark:#214E3A; --s-mark-r:12px}
+.phones+.phones{margin-top:34px}
+.launch{background:radial-gradient(130% 55% at 50% 0%,var(--s-glow),transparent 62%),var(--s-bg)}
+.launch .body{align-items:center;text-align:center;justify-content:center;gap:14px;padding-bottom:40px}
+.mark{width:84px;height:84px;border-radius:var(--s-mark-r);background:var(--s-mark);display:grid;place-items:center;box-shadow:0 14px 30px -14px rgba(45,106,79,.55)}
+.mark svg{width:58%;height:58%;display:block}
+.mark.sm{width:46px;height:46px}
+.launch .s-h{font-size:calc(var(--s-dsize) + 3px)}
+[data-dir="c"] .launch .s-h em{text-align:center}
+.foot{position:absolute;left:0;right:0;bottom:26px;text-align:center;font-family:var(--mono);font-size:8.5px;letter-spacing:.2em;color:var(--s-faint)}
+.steps{display:flex;flex-direction:column;gap:9px;width:100%;max-width:190px;text-align:left;margin-top:6px}
+.step{display:flex;align-items:center;gap:9px;font-size:11px;color:var(--s-muted)}
+.step i{width:16px;height:16px;border-radius:50%;flex:none;display:grid;place-items:center;font-style:normal;font-size:9px;font-weight:700;background:var(--s-accent);color:var(--s-accent-ink)}
+.step.now{color:var(--s-ink);font-weight:600}
+.step.now i{background:transparent;border:2px solid var(--s-inset);border-top-color:var(--s-accent);animation:spin .9s linear infinite}
+.step.todo i{background:var(--s-inset)}
+.pulse{animation:pulse 1.8s ease-in-out infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{50%{transform:scale(.94);opacity:.85}}
+@media (prefers-reduced-motion:reduce){.step.now i,.pulse{animation:none}}
+
+/* state strip */
+.states{display:flex;gap:16px;width:max-content;margin:28px auto 0}
+.state{width:214px;flex:none}
+.state .screen{height:170px;border-radius:18px;border:1px solid rgba(0,0,0,.12)}
+.state .body{padding:12px;gap:8px}
+.skel{height:9px;border-radius:5px;background:var(--s-inset)}
+.skelcard{background:var(--s-card);border:1px solid var(--s-line);border-radius:var(--s-r);padding:9px;display:flex;flex-direction:column;gap:6px}
+.offline{background:var(--s-inset);color:var(--s-ink);font-size:10px;padding:6px 9px;border-radius:8px;display:flex;gap:6px;align-items:center}
+.offline::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--s-faint)}
+.center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px}
+.center .s-h{font-size:17px}
+
+/* structure + stack */
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin-top:24px}
+@media (max-width:760px){.cols{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px 22px;min-width:0}
+.panel h3{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.panel h3 small{font-family:var(--mono);font-size:10.5px;color:var(--faint);font-weight:400;letter-spacing:.08em}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:12px;padding:14px 16px;overflow-x:auto;font-family:var(--mono);font-size:12px;line-height:1.65;margin:10px 0 0;color:var(--fg)}
+pre .c{color:var(--faint)}
+pre .k{color:var(--accent)}
+.tbl{overflow-x:auto;margin-top:22px;border:1px solid var(--line);border-radius:16px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
+th,td{text-align:left;padding:13px 18px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+th{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:500;background:var(--inset)}
+td:first-child{font-weight:600;white-space:nowrap}
+td .why{display:block;color:var(--muted);font-size:13px}
+
+/* decisions */
+.decide{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin-top:24px}
+@media (max-width:760px){.decide{grid-template-columns:1fr}}
+.q{border:1px solid var(--line-strong);border-radius:16px;padding:20px 22px;background:var(--surface);min-width:0}
+.q ol{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:8px}
+.q li::marker{font-family:var(--mono);color:var(--label)}
+.q .pick{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--accent);margin-left:6px}
+footer{padding-block:34px 60px;border-top:1px solid var(--line);color:var(--faint);font-size:12.5px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-mark" viewBox="0 0 48 48"><g fill="var(--s-mark-ink)"><rect x="8" y="20" width="9" height="20" rx="1.5"/><rect x="19.5" y="9" width="9" height="31" rx="1.5"/><rect x="31" y="15" width="9" height="25" rx="1.5"/></g><circle cx="35.5" cy="8.5" r="4.5" fill="#F4A261"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9v11h14V9"/><path d="M10 20v-6h4v6"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></symbol>
+  <symbol id="i-building" viewBox="0 0 24 24"><path d="M4 21V5l8-2v18"/><path d="M12 9h8v12"/><path d="M2.5 21h19"/><path d="M7 8h2M7 12h2M7 16h2M15.5 13h1.5M15.5 17h1.5"/></symbol>
+  <symbol id="i-megaphone" viewBox="0 0 24 24"><path d="M3 10v4h3l9 5V5L6 10z"/><path d="M6 14l1.5 5.5H10L9 15"/><path d="M18.5 9.5a3.5 3.5 0 0 1 0 5"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.8a3.5 3.5 0 0 1 0 6.4"/><path d="M18 14.5a6.5 6.5 0 0 1 3.5 5.5"/></symbol>
+</svg>
+<div class="wrap">
+
+<header class="hero">
+  <p class="eyebrow">Full Stack Intern assignment · design proposal</p>
+  <h1>Every notice,<br><em>read by the right flat.</em></h1>
+  <p class="lead">A buyer-updates app for a builder's residential project: invite codes, a targeted notice feed, and read counts the builder can trust. The look follows gatehood.com so the submission feels like it belongs to their product.</p>
+  <div class="meta-row">
+    <span class="chip">Expo + expo-router</span><span class="chip">TypeScript throughout</span><span class="chip">Firestore + security rules</span><span class="chip">Android + iOS</span>
+  </div>
+
+  <div class="swatches" aria-label="Palette taken from gatehood.com">
+    <div class="sw"><i style="background:#2D6A4F"></i><b>Forest</b><span>#2D6A4F</span></div>
+    <div class="sw"><i style="background:#214E3A"></i><b>Forest dark</b><span>#214E3A</span></div>
+    <div class="sw"><i style="background:#F4A261"></i><b>Amber</b><span>#F4A261</span></div>
+    <div class="sw"><i style="background:#C2651A"></i><b>Amber dark</b><span>#C2651A</span></div>
+    <div class="sw"><i style="background:#FBF6EE"></i><b>Ivory</b><span>#FBF6EE</span></div>
+    <div class="sw"><i style="background:#1A1A1A"></i><b>Ink</b><span>#1A1A1A</span></div>
+  </div>
+  <div class="typeline">
+    <span class="t1">Cormorant <em>Garamond</em></span><span>headlines</span>
+    <span class="t2">DM Sans</span><span>body and UI</span>
+    <span class="t3">JETBRAINS MONO</span><span>labels, unit numbers</span>
+  </div>
+</header>
+
+<section id="looks">
+  <p class="eyebrow">Pick a look</p>
+  <h2>Three directions, <em>one palette.</em></h2>
+  <p class="prose" style="color:var(--muted)">All three use gatehood.com's tokens. They differ in how much of the site's editorial feel carries into the app. The screens and data are the same in each, so you can compare like for like.</p>
+
+  <div class="tabs" role="tablist" aria-label="Design direction">
+    <button class="tab" role="tab" id="tab-a" aria-selected="true" data-dir="a"><span class="k">A</span><span class="rec">RECOMMENDED</span><span class="n">Notice board</span><span class="d">Ivory paper, serif headlines, white cards</span></button>
+    <button class="tab" role="tab" id="tab-b" aria-selected="false" data-dir="b"><span class="k">B</span><span class="n">Forest night</span><span class="d">Deep green, amber italics, dark-first</span></button>
+    <button class="tab" role="tab" id="tab-c" aria-selected="false" data-dir="c"><span class="k">C</span><span class="n">Site ledger</span><span class="d">Sans only, tight rows, square corners</span></button>
+  </div>
+
+  <div class="dir-note" id="dir-note"></div>
+
+  <div class="gallery" id="gallery" data-dir="a">
+    <div class="phones">
+
+      <!-- Splash -->
+      <div>
+        <div class="phone"><div class="screen launch">
+          <div class="island"></div>
+          <div class="status"><span>9:41</span><span class="sig">5G ▮▮▮</span></div>
+          <div class="body">
+            <div class="mark"><svg><use href="#i-mark"/></svg></div>
+            <span class="s-eye" style="margin-top:8px">Buyer updates</span>
+            <h4 class="s-h">Aravali Heights<br><em>by Meridian Builders</em></h4>
+          </div>
+          <div class="foot">TOWERS A · B · C</div>
+        </div></div>
+        <p class="cap">Splash · app launch</p>
+      </div>
+
+      <!-- Loading -->
+      <div>
+        <div class="phone"><div class="screen launch">
+          <div class="island"></div>
+          <div class="status"><span>9:41</span><span class="sig">5G ▮▮▮</span></div>
+          <div class="body">
+            <div class="mark sm pulse"><svg><use href="#i-mark"/></svg></div>
+            <h4 class="s-h" style="font-size:var(--s-dsize)">Opening<br><em>your unit.</em></h4>
+            <div class="steps">
+              <div class="step"><i>✓</i>Signed in</div>
+              <div class="step"><i>✓</i>Tower A, 1204 found</div>
+              <div class="step now"><i></i>Loading latest updates</div>
+              <div class="step todo"><i></i>Saving them for offline</div>
+            </div>
+          </div>
+          <div class="foot">FIRST LAUNCH ONLY</div>
+        </div></div>
+        <p class="cap">Loading · after splash</p>
+      </div>
+
+    </div>
+    <div class="phones">
+
+      <!-- Join -->
+      <div>
+        <div class="phone"><div class="screen">
+          <div class="island"></div>
+          <div class="status"><span>9:41</span><span class="sig">5G ▮▮▮</span></div>
+          <div class="body" style="padding-top:34px">
+            <span class="s-eye">Buyer access · Aravali Heights</span>
+            <h4 class="s-h">Join your<br><em>home's updates.</em></h4>
+            <p class="s-p">Enter the invite code Meridian Builders sent with your allotment letter.</p>
+            <div class="codebox">A1204-7KQ</div>
+            <div class="err">This code was already used on another phone. Ask the site office for a fresh code.</div>
+            <div class="btn" style="margin-top:4px">Join</div>
+            <p class="small" style="text-align:center;margin-top:auto;padding-bottom:22px">Builder team? <span style="color:var(--s-accent);font-weight:600">Sign in with email</span></p>
+          </div>
+        </div></div>
+        <p class="cap">Buyer · join, used code</p>
+      </div>
+
+      <!-- My unit -->
+      <div>
+        <div class="phone"><div class="screen">
+          <div class="island"></div>
+          <div class="status"><span>9:41</span><span class="sig">5G ▮▮▮</span></div>
+          <div class="body">
+            <div class="topbar"><span class="proj">Aravali Heights</span><span class="unitchip">A-1204</span></div>
+            <div><span class="s-eye">My unit</span>
+            <h4 class="s-h" style="margin-top:5px">Tower A, 1204<br><em>3BHK · 1,640 sq ft</em></h4></div>
+            <div class="card">
+              <div class="row"><span class="s-eye" style="color:var(--s-muted)">Construction</span><span class="big">62%</span></div>
+              <div class="bar"><i style="width:62%"></i></div>
+              <p class="small" style="margin:7px 0 0">Tower A · slab 14 of 22 cast</p>
+            </div>
+            <div class="grid2">
+              <div class="card"><div class="big">418</div><div class="small">days to possession</div></div>
+              <div class="card"><div class="big" style="font-size:22px;padding-top:6px">Jan 2028</div><div class="small">handover target</div></div>
+            </div>
+            <div class="item pin"><span class="s-eye">Pinned · all towers</span><span class="when">2d</span><span class="t" style="grid-column:1/-1">Site visit day on Sat 7 Dec, 10am to 1pm</span></div>
+          </div>
+          <div class="tabbar"><span class="on"><i class="ic"><svg><use href="#i-home"/></svg></i>Home</span><span><i class="ic"><svg><use href="#i-bell"/></svg><span class="badge">3</span></i>Updates</span></div>
+        </div></div>
+        <p class="cap">Buyer · my unit</p>
+      </div>
+
+      <!-- Feed -->
+      <div>
+        <div class="phone"><div class="screen">
+          <div class="island"></div>
+          <div class="status"><span>9:41</span><span class="sig">5G ▮▮▮</span></div>
+          <div class="body">
+            <div class="topbar"><h4 class="s-h" style="font-size:24px">Updates</h4><span class="unitchip">3 unread</span></div>
+            <div class="seg"><span class="on">All</span><span>My tower</span><span>My unit</span></div>
+            <span class="newpill">↑ 1 new update</span>
+            <div class="feed">
+              <div class="item pin"><span class="s-eye">Pinned · all towers</span><span class="when">2d</span><span class="t" style="grid-column:1/-1">Site visit day on Sat 7 Dec, 10am to 1pm</span></div>
+              <div class="item"><span class="s-eye">Tower A</span><span class="when">2h</span><span class="t" style="grid-column:1/-1">Lift installation starts Monday</span></div>
+              <div class="item"><span class="s-eye">Your unit · A-1204</span><span class="when">5h</span><span class="t" style="grid-column:1/-1">Pick your kitchen tiles by 30 Nov</span></div>
+              <div class="item read"><span class="s-eye" style="color:var(--s-faint)">All towers</span><span class="when">3d</span><span class="t" style="grid-column:1/-1">November progress report</span></div>
+              <div class="item read"><span class="s-eye" style="color:var(--s-faint)">Tower A</span><span class="when">4d</span><span class="t" style="grid-column:1/-1">Water off Thu, 10am to 2pm</span></div>
+            </div>
+            <div class="more">15 OF 52 · LOADING MORE</div>
+          </div>
+          <div class="tabbar"><span><i class="ic"><svg><use href="#i-home"/></svg></i>Home</span><span class="on"><i class="ic"><svg><use href="#i-bell"/></svg><span class="badge">3</span></i>Updates</span></div>
+        </div></div>
+        <p class="cap">Buyer · updates feed</p>
+      </div>
+
+      <!-- Builder notice stats -->
+      <div>
+        <div class="phone"><div class="screen">
+          <div class="island"></div>
+          <div class="status"><span>9:41</span><span class="sig">5G ▮▮▮</span></div>
+          <div class="body">
+            <div class="topbar"><span class="small" style="color:var(--s-accent);font-weight:600">← Notices</span><span class="unitchip">BUILDER</span></div>
+            <div><span class="s-eye">Towers A, B · posted 21 Nov</span>
+            <h4 class="s-h" style="margin-top:5px;font-size:calc(var(--s-dsize) - 5px)">Water supply off Thursday, <em>10am to 2pm</em></h4></div>
+            <div class="card">
+              <div class="row"><span><span class="big">184</span> <span class="small">/ 240 units read</span></span><span class="small mono">77%</span></div>
+              <div class="bar"><i style="width:77%"></i></div>
+              <div style="display:flex;flex-direction:column;gap:7px;margin-top:11px">
+                <div class="tower"><span>Tower A</span><div class="bar"><i style="width:80%"></i></div><span>96/120</span></div>
+                <div class="tower"><span>Tower B</span><div class="bar"><i style="width:73%"></i></div><span>88/120</span></div>
+              </div>
+            </div>
+            <div class="card" style="padding-block:6px">
+              <div class="row" style="padding:5px 0 3px"><span class="s-eye">Not read yet · 56</span><span class="small">Joined only</span></div>
+              <div class="who"><span>Rohan Mehta</span><b>A-0302</b></div>
+              <div class="who"><span>Kavya Iyer</span><b>A-0811</b></div>
+              <div class="who"><span>Arjun Rao</span><b>B-1104</b></div>
+              <div class="who"><span style="color:var(--s-muted)">+ 53 more</span><b>VIEW ALL</b></div>
+            </div>
+          </div>
+          <div class="tabbar"><span><i class="ic"><svg><use href="#i-building"/></svg></i>Towers</span><span class="on"><i class="ic"><svg><use href="#i-megaphone"/></svg></i>Notices</span><span><i class="ic"><svg><use href="#i-users"/></svg></i>Buyers</span></div>
+        </div></div>
+        <p class="cap">Builder · who hasn't read</p>
+      </div>
+
+    </div>
+
+    <div class="states">
+      <div class="state"><div class="screen"><div class="body">
+        <span class="s-eye">Loading</span>
+        <div class="skelcard"><div class="skel" style="width:40%"></div><div class="skel" style="width:85%"></div></div>
+        <div class="skelcard"><div class="skel" style="width:30%"></div><div class="skel" style="width:70%"></div></div>
+      </div></div><p class="cap">Loading</p></div>
+      <div class="state"><div class="screen"><div class="body"><div class="center">
+        <h4 class="s-h">No updates for <em>your unit yet.</em></h4>
+        <p class="small">Notices for A-1204 will show up here.</p>
+      </div></div></div><p class="cap">Empty filter</p></div>
+      <div class="state"><div class="screen"><div class="body"><div class="center">
+        <h4 class="s-h">Couldn't load <em>updates.</em></h4>
+        <p class="small">Check your connection and try again.</p>
+        <div class="btn" style="padding:6px 22px;font-size:11px">Retry</div>
+      </div></div></div><p class="cap">Error + retry</p></div>
+      <div class="state"><div class="screen"><div class="body">
+        <div class="offline">Offline · showing updates from 9:12 am</div>
+        <div class="item pin"><span class="s-eye">Pinned</span><span class="when">2d</span><span class="t" style="grid-column:1/-1">Site visit day on Sat 7 Dec</span></div>
+        <div class="item read"><span class="s-eye" style="color:var(--s-faint)">Tower A</span><span class="when">2h</span><span class="t" style="grid-column:1/-1">Lift installation starts Monday</span></div>
+      </div></div><p class="cap">Offline, cached feed</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="structure">
+  <p class="eyebrow">App structure</p>
+  <h2>Two roles, <em>one app.</em></h2>
+  <p class="prose" style="color:var(--muted)">expo-router route groups split the builder and buyer sides. On launch, the app reads the signed-in user's record and sends them to the right group, so a buyer can never land on a builder screen.</p>
+  <div class="cols">
+    <div class="panel">
+      <h3>Buyer <small>4 screens</small></h3>
+      <pre><span class="k">app/(auth)/join.tsx</span>          <span class="c">invite code: invalid, used, expired</span>
+<span class="k">app/(buyer)/_layout.tsx</span>      <span class="c">tabs: Home, Updates</span>
+<span class="k">app/(buyer)/index.tsx</span>        <span class="c">my unit, progress, possession</span>
+<span class="k">app/(buyer)/updates/index.tsx</span> <span class="c">feed, filters, 15 per page</span>
+<span class="k">app/(buyer)/updates/[id].tsx</span>  <span class="c">notice, marks it read</span></pre>
+    </div>
+    <div class="panel">
+      <h3>Builder <small>6 screens</small></h3>
+      <pre><span class="k">app/(auth)/builder.tsx</span>        <span class="c">email + password</span>
+<span class="k">app/(builder)/index.tsx</span>       <span class="c">joined by tower</span>
+<span class="k">app/(builder)/import.tsx</span>      <span class="c">CSV, preview, create codes</span>
+<span class="k">app/(builder)/buyers.tsx</span>      <span class="c">codes, joined or pending</span>
+<span class="k">app/(builder)/notices/new.tsx</span>  <span class="c">all / towers / units, pin</span>
+<span class="k">app/(builder)/notices/[id].tsx</span> <span class="c">read count, who hasn't read</span></pre>
+    </div>
+  </div>
+  <div class="cols">
+    <div class="panel">
+      <h3>Repository <small>one repo, all TypeScript</small></h3>
+      <pre>app/           <span class="c">expo-router screens</span>
+src/
+  theme/       <span class="c">gatehood tokens: colors, type, spacing</span>
+  lib/         <span class="c">firebase client, audience keys</span>
+  features/    <span class="c">feed, notices, invites, units</span>
+  components/  <span class="c">Card, NoticeRow, StateViews</span>
+backend/
+  firestore.rules
+  firestore.indexes.json
+  scripts/seed.ts     <span class="c">towers, units, 50+ notices</span>
+  tests/rules.test.ts <span class="c">emulator tests</span>
+.env.example          <span class="c">no real keys committed</span></pre>
+    </div>
+    <div class="panel">
+      <h3>Data model <small>Firestore</small></h3>
+      <pre><span class="k">units/{unitId}</span>      tower, number, config,
+                    progressPct, possessionDate
+<span class="k">invites/{code}</span>      unitId, name, phone,
+                    expiresAt, usedBy, usedAt
+<span class="k">members/{uid}</span>       role, unitId, tower
+<span class="k">notices/{id}</span>        title, body, pinned, createdAt,
+                    audience: ["all" | "tower:A" |
+                               "unit:A-1204"],
+                    readCount, targetCount
+<span class="k">notices/{id}/reads/{uid}</span>  unitId, readAt</pre>
+    </div>
+  </div>
+</section>
+
+<section id="stack">
+  <p class="eyebrow">Tech stack</p>
+  <h2>What it's built with, <em>and why.</em></h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Layer</th><th>Choice</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td>App</td><td>Expo, React Native, TypeScript (strict), expo-router</td><td>Required by the brief.<span class="why">Reviewers can run it in Expo Go with a QR code, no native build.</span></td></tr>
+      <tr><td>Splash + loading</td><td>expo-splash-screen, then an in-app loading screen</td><td>The native splash (logo on the theme colour) stays up until fonts load.<span class="why">Then the loading screen shows real steps while sign-in restores and the unit and feed load. Returning users go straight to the cached feed.</span></td></tr>
+      <tr><td>Data + auth</td><td>Firebase JS SDK: Firestore and Auth</td><td>Live feed through <code>onSnapshot</code>.<span class="why">Builder signs in with email. Buyer gets an anonymous account linked to a unit by the invite code.</span></td></tr>
+      <tr><td>Backend</td><td>Firestore security rules, indexes, and TypeScript scripts</td><td>Firestore is the server.<span class="why">Rules enforce who reads what, one-time codes, and +1 read counts. No paid plan, nothing extra to host.</span></td></tr>
+      <tr><td>Feed query</td><td><code>audience</code> array-contains-any, pinned then newest, limit 15</td><td>One query for All. My tower and My unit use one key each.<span class="why">Paginate with <code>startAfter</code> on the last notice.</span></td></tr>
+      <tr><td>Read counts</td><td>Receipt document plus <code>increment(1)</code> in one batch</td><td>Rules allow the +1 only when the receipt is new.<span class="why">So counts can't be faked or doubled. Who hasn't read = joined units in the audience minus receipts.</span></td></tr>
+      <tr><td>Offline</td><td>AsyncStorage copy of the last feed page, NetInfo banner</td><td>The JS SDK only caches in memory on React Native.<span class="why">This keeps the last feed after the app restarts.</span></td></tr>
+      <tr><td>CSV import</td><td>expo-document-picker and papaparse</td><td>The builder previews rows, then the app writes units and invite codes in batches.</td></tr>
+      <tr><td>Seed + setup</td><td><code>tsx backend/scripts/seed.ts</code> with firebase-admin</td><td>Service-account file and <code>.env</code> are gitignored.<span class="why">The README walks through it. The Firebase emulator works too.</span></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="decide">
+  <p class="eyebrow">Your call</p>
+  <h2>Two choices <em>before I build.</em></h2>
+  <div class="decide">
+    <div class="q">
+      <h3>1. Which look?</h3>
+      <ol type="A">
+        <li><b>Notice board</b><span class="pick">MY PICK</span><br><span style="color:var(--muted)">Closest to gatehood.com, reads well for long notices.</span></li>
+        <li><b>Forest night</b><br><span style="color:var(--muted)">Most striking in the video, but heavy for daytime reading.</span></li>
+        <li><b>Site ledger</b><br><span style="color:var(--muted)">Plainest, fastest to build, least like their brand.</span></li>
+      </ol>
+    </div>
+    <div class="q">
+      <h3>2. What does "TypeScript backend" mean here?</h3>
+      <ol>
+        <li><b>Firestore is the backend</b><span class="pick">MY PICK</span><br><span style="color:var(--muted)">Rules, indexes, seed script and rule tests, all in TypeScript. One thing for reviewers to run.</span></li>
+        <li><b>Add a Node + Express API in TypeScript</b><br><span style="color:var(--muted)">Handles CSV import and code redemption on a server. More code to show, but reviewers must run and host a second service.</span></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<footer>Design proposal for a hiring assignment. Palette and typefaces are taken from gatehood.com's public CSS. "Aravali Heights" and "Meridian Builders" are sample names.</footer>
+</div>
+
+<script>
+(function(){
+  var notes={
+    a:{good:"Looks like Gatehood's own product: the serif headline with a forest italic line, mono labels and white cards on ivory come straight from their site. Long notices are easy to read.",cost:"Three font families to load with expo-font. That's a one-time setup cost and no problem at runtime."},
+    b:{good:"Their dark “Sorted” slide turned into an app. Deep green with amber italics looks premium and stands out in a 90-second video.",cost:"Dark-only is tiring for long notices in daylight, so a light mode would still be needed. That's double the visual QA."},
+    c:{good:"Same palette, no serif. Denser rows and square corners suit the builder side, where people scan lists of units.",cost:"It looks least like Gatehood's warm consumer brand, which is what reviewers will compare against."}
+  };
+  var gallery=document.getElementById('gallery'), note=document.getElementById('dir-note');
+  var tabs=[].slice.call(document.querySelectorAll('.tab'));
+  function show(d){
+    gallery.setAttribute('data-dir',d);
+    tabs.forEach(function(t){t.setAttribute('aria-selected',t.getAttribute('data-dir')===d?'true':'false')});
+    note.innerHTML='<div><h3>What it does well</h3><p>'+notes[d].good+'</p></div><div><h3>Trade-off</h3><p>'+notes[d].cost+'</p></div>';
+  }
+  tabs.forEach(function(t){t.addEventListener('click',function(){show(t.getAttribute('data-dir'))})});
+  show('a');
+})();
+</script>

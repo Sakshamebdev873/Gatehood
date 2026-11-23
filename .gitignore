@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.expo/
+*.log
+.env
+.env.*
+!.env.example
+*.local
+service-account*.json
+.superpowers/
+firebase/*-debug.log
+coverage/
+.DS_Store
+web-build/
+ios/
+android/
