@@ -17,6 +17,7 @@
     "mobile": "npm start -w apps/mobile"
   },
   "devDependencies": {
-    "firebase-tools": "^15.37.0"
+    "firebase-tools": "^15.37.0",
+    "typescript": "~6.0.3"
   }
 }
