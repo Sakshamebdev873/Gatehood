@@ -15,5 +15,8 @@
     "seed": "npm run seed -w apps/server",
     "server": "npm run dev -w apps/server",
     "mobile": "npm start -w apps/mobile"
+  },
+  "devDependencies": {
+    "firebase-tools": "^15.37.0"
   }
 }
