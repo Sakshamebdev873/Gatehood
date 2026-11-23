@@ -3,10 +3,13 @@ import express, { type Express } from 'express';
 import type { AppDeps } from './deps.js';
 import { errorHandler, notFoundHandler } from './errors.js';
 import type { Admin } from './firebase.js';
+import { invitesRouter } from './routes/invites.js';
 
 export interface AppOptions {
   /** Adds routes before the 404 and error handlers. Used by tests. */
   extend?: (app: Express) => void;
+  /** Limit invite redeems to 10 a minute per IP. Defaults to on, except under NODE_ENV=test. */
+  rateLimit?: boolean;
 }
 
 export function createApp(deps: Admin & { now?: () => Date }, options: AppOptions = {}): Express {
@@ -21,6 +24,8 @@ export function createApp(deps: Admin & { now?: () => Date }, options: AppOption
   app.get('/health', (_req, res) => {
     res.json({ ok: true });
   });
+
+  app.use('/api/invites', invitesRouter({ rateLimit: options.rateLimit ?? process.env.NODE_ENV !== 'test' }));
 
   options.extend?.(app);
 
