@@ -3,6 +3,9 @@ import express, { type Express } from 'express';
 import type { AppDeps } from './deps.js';
 import { errorHandler, notFoundHandler } from './errors.js';
 import type { Admin } from './firebase.js';
+import { requireRole } from './middleware/auth.js';
+import { builderRouter } from './routes/builder.js';
+import { importRouter } from './routes/import.js';
 import { invitesRouter } from './routes/invites.js';
 
 export interface AppOptions {
@@ -26,6 +29,9 @@ export function createApp(deps: Admin & { now?: () => Date }, options: AppOption
   });
 
   app.use('/api/invites', invitesRouter({ rateLimit: options.rateLimit ?? process.env.NODE_ENV !== 'test' }));
+
+  // Everything under /api/builder needs a builder login.
+  app.use('/api/builder', requireRole('builder'), importRouter(), builderRouter());
 
   options.extend?.(app);
 
