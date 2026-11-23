@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "start": "tsx src/index.ts",
+    "seed": "tsx src/seed.ts",
     "test": "npm run test:emu",
     "test:emu": "firebase emulators:exec --only firestore,auth --project demo-gatehood --config ../../firebase/firebase.json \"vitest run\"",
     "test:rules": "firebase emulators:exec --only firestore --project demo-gatehood --config ../../firebase/firebase.json \"vitest run rules\"",
