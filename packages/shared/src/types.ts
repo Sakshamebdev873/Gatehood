@@ -41,7 +41,8 @@ export type ApiErrorCode =
   | 'forbidden'
   | 'not_found'
   | 'bad_request'
-  | 'rate_limited';
+  | 'rate_limited'
+  | 'internal';
 
 export interface ApiErrorBody {
   error: { code: ApiErrorCode; message: string };
