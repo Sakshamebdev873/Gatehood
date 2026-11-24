@@ -1,4 +1,5 @@
 import type { Notice } from '@gatehood/shared';
+import { router } from 'expo-router';
 import { useRef, useState, type ReactNode } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -90,6 +91,7 @@ export default function Updates() {
             label={audienceLabel(item, me)}
             when={relativeTime(item.createdAt, now)}
             read={isRead(item.id)}
+            onPress={() => router.push({ pathname: '/updates/[id]', params: { id: item.id } })}
           />
         )}
         onEndReached={feed.loadMore}

@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import NetInfo from '@react-native-community/netinfo';
 import type { Notice } from '@gatehood/shared';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
@@ -27,7 +28,7 @@ function retryable(err: unknown): boolean {
 /**
  * Read state for the signed-in buyer: their receipts from `members/{uid}/reads`, plus notices
  * marked read on this phone. Unsent marks are kept on the phone and retried when the app
- * comes back to the foreground, so a read on a bad connection still counts.
+ * comes back to the foreground or the connection returns, so a read made offline still counts.
  */
 export function ReadStateProvider({ children }: { children: ReactNode }) {
   const { uid } = useAuth();
@@ -87,6 +88,13 @@ export function ReadStateProvider({ children }: { children: ReactNode }) {
     const sub = AppState.addEventListener('change', (state) => {
       if (state === 'active') flush();
     });
+    // Back online with the app open: send what was read offline straight away.
+    let wasOffline = false;
+    const unsubNet = NetInfo.addEventListener((state) => {
+      const offline = state.isConnected === false;
+      if (wasOffline && !offline) flush();
+      wasOffline = offline;
+    });
 
     sendRef.current = (id: string) => {
       pending.current.add(id);
@@ -97,10 +105,10 @@ export function ReadStateProvider({ children }: { children: ReactNode }) {
     return () => {
       active = false;
       sub.remove();
+      unsubNet();
       sendRef.current = undefined;
     };
   }, [uid]);
-
 
   const isRead = (id: string) => serverIds.has(id) || localIds.has(id);
 

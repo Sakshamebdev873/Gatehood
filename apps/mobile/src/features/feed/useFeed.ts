@@ -273,6 +273,16 @@ function controllerFor(me: Me, filter: FeedFilter): FeedController {
   return c;
 }
 
+/** A notice this user's feeds already have in memory (any filter, any loaded page). */
+export function findLoadedNotice(uid: string, id: string): Notice | undefined {
+  for (const [key, c] of controllers) {
+    if (!key.startsWith(`${uid}|`)) continue;
+    const hit = c.getView().items.find((n) => n.id === id);
+    if (hit) return hit;
+  }
+  return undefined;
+}
+
 const EMPTY_VIEW: FeedView = {
   items: [],
   status: 'loading',
