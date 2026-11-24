@@ -81,6 +81,30 @@ Added at the user's request:
 
 Look: direction A (Notice board) was chosen over B (Forest night) and C (Site ledger).
 
+### 4.1 Firebase library: JS SDK ("Web" app), not React Native Firebase ("Android/iOS" apps)
+
+Registering a "Web" app in the Firebase console doesn't make this a website. It only picks which Firebase library the app uses. The app is still a real Android and iOS app built with Expo.
+
+| | **Firebase JS SDK** (registered as a Web app) | **React Native Firebase** (registered as Android + iOS apps) |
+|---|---|---|
+| What it is | Plain JavaScript library | Native Android and iOS modules |
+| Config | One config, used by Android **and** iOS | `google-services.json` (Android) + `GoogleService-Info.plist` (iOS) |
+| Runs in Expo Go | **Yes**: scan the QR code | **No**: needs a custom development build |
+| Reviewer setup | `npm install`, then scan the QR code | Android Studio or EAS builds. iOS needs a Mac with Xcode, or a paid Apple developer account, to install on a phone. |
+| Offline cache | Memory only. We add an AsyncStorage copy of the last feed. | Saved on the phone automatically |
+| Push notifications, Crashlytics | No | Yes |
+
+**Decision: Firebase JS SDK.**
+
+Why:
+1. The brief asks for "Android and iOS" and "set up from the README". Expo Go lets reviewers run it on both phones in minutes. A native build could block an iOS reviewer without a Mac.
+2. One config instead of two platform registrations.
+3. What the native library adds (push notifications, Crashlytics, a full offline database) isn't in the brief. The one gap, offline, is covered by saving the last feed to AsyncStorage, which is exactly what the brief asks for.
+
+**What it costs:** no push notifications, and the offline cache holds only the last saved feed pages, not the full database. A production version would move to React Native Firebase with development builds. `NOTE.md` states this as a trade-off.
+
+**Firebase console:** register a **Web** app (`</>`). Don't register Android or iOS apps. See `docs/firebase-setup.md`.
+
 ## 5. Architecture
 
 ```
@@ -173,7 +197,7 @@ notices/{nid}/reads/{uid}   unitId, towerId, readAt      the receipt; one per bu
 - **Read state:**
   - the app listens to `members/{uid}/reads`
   - opening a notice marks it read on screen immediately, then calls the API
-  - the unread badge counts unread notices among the loaded pages
+  - the unread badge is exact for the All feed: the server's notice count minus the buyer's reads (the full reads list is already loaded). The My tower and My unit chips count loaded notices.
 
 ### 5.5 Read counts at scale
 
@@ -291,7 +315,7 @@ Two ways to run:
 3. **Unit configuration and area come from the seed**, or from an optional `config` CSV column. Tower progress and possession dates are seeded, with no editing screen.
 4. **Invite codes expire 30 days after import.**
 5. **The server runs locally by default.** The README mentions deploying to Render or Railway, but the video is recorded locally.
-6. **The buyer's unread badge counts unread notices among the pages already loaded**, not across the whole history.
+6. **The buyer's unread badge covers the whole history**: the All feed's server count minus the buyer's reads, so it doesn't grow as more pages load. (Changed 2026-11-24; it used to count loaded pages only.)
 7. **Express is the server framework**, chosen as the most familiar to reviewers.
 
 ## 8. Brief coverage and extras

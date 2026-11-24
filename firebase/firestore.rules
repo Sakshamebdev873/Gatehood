@@ -1,0 +1,70 @@
+rules_version = '2';
+
+// The app only reads. Every write goes through the server (Admin SDK bypasses these rules).
+// Login claims, set by the server: role ('builder' | 'buyer'), and for buyers towerId and unitId.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function token() {
+      return request.auth.token;
+    }
+
+    function isBuilder() {
+      return request.auth != null && token().get('role', '') == 'builder';
+    }
+
+    function isBuyer() {
+      return request.auth != null
+        && token().get('role', '') == 'buyer'
+        && token().get('towerId', '') is string && token().get('towerId', '') != ''
+        && token().get('unitId', '') is string && token().get('unitId', '') != '';
+    }
+
+    function isMember() {
+      return isBuilder() || isBuyer();
+    }
+
+    // The audience keys a buyer matches. Must stay in step with audienceKeysFor in packages/shared.
+    function myKeys() {
+      return ['all', 'tower:' + token().towerId, 'unit:' + token().unitId];
+    }
+
+    match /notices/{noticeId} {
+      allow read: if isBuilder() || (isBuyer() && resource.data.audience.hasAny(myKeys()));
+      allow write: if false;
+
+      // Full read list: builder only. Buyers see their own state via members/{uid}/reads.
+      match /reads/{uid} {
+        allow read: if isBuilder();
+        allow write: if false;
+      }
+    }
+
+    match /units/{unitId} {
+      allow read: if isBuilder() || (isBuyer() && token().unitId == unitId);
+      allow write: if false;
+    }
+
+    match /towers/{towerId} {
+      allow read: if isMember();
+      allow write: if false;
+    }
+
+    match /members/{uid} {
+      allow read: if isBuilder() || (request.auth != null && request.auth.uid == uid);
+      allow write: if false;
+
+      match /reads/{noticeId} {
+        allow read: if isBuilder() || (request.auth != null && request.auth.uid == uid);
+        allow write: if false;
+      }
+    }
+
+    match /invites/{code} {
+      allow read: if isBuilder();
+      allow write: if false;
+    }
+
+    // Anything not matched above is denied by default.
+  }
+}

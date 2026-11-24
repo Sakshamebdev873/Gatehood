@@ -1,0 +1,23 @@
+{
+  "name": "gatehood",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build:shared": "npm run build -w packages/shared",
+    "test": "npm test --workspaces --if-present",
+    "emulators": "firebase emulators:start --project demo-gatehood --config firebase/firebase.json",
+    "seed": "npm run seed -w apps/server",
+    "server": "npm run dev -w apps/server",
+    "mobile": "npm start -w apps/mobile"
+  },
+  "devDependencies": {
+    "firebase-tools": "^15.37.0",
+    "typescript": "~6.0.3"
+  }
+}
