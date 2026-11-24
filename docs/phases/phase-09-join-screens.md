@@ -22,11 +22,13 @@ Buyers join with an invite code, with a clear message for each kind of bad code.
   - on success, sign in, and the app moves to the buyer tabs
   - link at the bottom: "Builder team? Sign in with email"
 - **Builder sign-in:** email and password. A wrong login shows "Email or password is wrong."
+  - a login without the builder role is signed straight out and told: "This account isn't on the builder team. Buyers join with the invite code instead."
+  - no internet shows the same message as on the join screen
 
 ## Files
 ```
-apps/mobile/app/(auth)/index.tsx
-apps/mobile/app/(auth)/builder.tsx
+apps/mobile/src/app/(auth)/index.tsx
+apps/mobile/src/app/(auth)/builder.tsx
 ```
 
 ## Steps
