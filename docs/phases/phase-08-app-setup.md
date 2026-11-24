@@ -18,7 +18,7 @@ Create the Expo app with Gatehood's look, the splash screen, the Firebase connec
   - `ErrorRetry`
   - `OfflineBanner`, showing "Offline · showing updates from 9:12 am"
 - **Splash:** the three-towers icon on ivory. It stays up until the fonts load and the login state is known.
-- **Firebase client:**
+- **Firebase client:** uses the **Firebase JS SDK**, set up from a **Web** app config, not the Android/iOS native library. That keeps the app running in Expo Go on both phones. See the design document, section 4.1, and `docs/firebase-setup.md`.
   - logins persist through AsyncStorage
   - connects to the emulators when `EXPO_PUBLIC_USE_EMULATORS=1`
 - **API client:** adds the login token to each request, and turns errors into readable messages.

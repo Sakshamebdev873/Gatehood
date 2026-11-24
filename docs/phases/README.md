@@ -27,6 +27,8 @@ Each file has six parts:
 - **Hands to next phase:** what later phases rely on
 
 Background:
+- the database (Firestore), what it stores, and its strengths and weaknesses: `docs/database.md`
+- Firebase console setup: `docs/firebase-setup.md`
 - the design: `docs/superpowers/specs/2026-11-23-gatehood-buyer-updates-design.md`
 - the task-level detail and test code: `docs/superpowers/plans/2026-11-23-gatehood-buyer-updates.md`
 - the whole plan on one page: `docs/BUILD-PLAN.md`
