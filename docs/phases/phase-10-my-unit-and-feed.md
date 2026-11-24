@@ -31,11 +31,22 @@ Build the two main buyer screens: My Unit, and the live updates feed with filter
 ## Files
 ```
 apps/mobile/src/features/unit/useMyUnit.ts
-apps/mobile/src/features/feed/{queries.ts,cache.ts,useFeed.ts,ReadState.tsx}
+apps/mobile/src/features/feed/{queries.ts,cache.ts,cacheFormat.ts,model.ts,labels.ts,useFeed.ts,ReadState.tsx}
 apps/mobile/src/components/NoticeRow.tsx
-apps/mobile/app/(buyer)/index.tsx
-apps/mobile/app/(buyer)/updates/index.tsx
+apps/mobile/src/lib/useNow.ts
+apps/mobile/src/app/(buyer)/_layout.tsx
+apps/mobile/src/app/(buyer)/index.tsx
+apps/mobile/src/app/(buyer)/updates/index.tsx
+apps/mobile/test/{labels,model,cacheFormat,queries}.test.ts
+apps/mobile/scripts/feed-check.ts
 ```
+
+How it fits together:
+- `model.ts` holds the feed logic with no Firebase or React in it: merging the live first page with later pages, counting new arrivals, the paging cursor, and the screen state. It is unit tested.
+- `useFeed.ts` keeps one shared feed per buyer and filter, so the tab badge, Home and the Updates list all see the same loaded pages.
+- "All" is one `array-contains-any` query. Phase 02 showed the rules accept it, so there is no three-query fallback.
+- My Unit also saves the unit and tower on the phone, so Home still shows them offline.
+- Notices marked read on a bad connection are kept on the phone and sent again when the app comes back to the front.
 
 ## Steps
 1. Build the feed queries (using phase 02's answer: one query or three for "All").
@@ -44,6 +55,10 @@ apps/mobile/app/(buyer)/updates/index.tsx
 4. Build the My Unit and Updates screens and the first-launch loading screen.
 5. Check by hand on both phones (list below).
 6. Commit.
+
+## Checks
+- `npm test -w apps/mobile`: unit tests for the feed model, labels, saved-feed format and queries.
+- `npx tsx apps/mobile/scripts/feed-check.ts`, with the emulators, seed and API running: signs in real buyers and checks targeting, order, paging to the end, totals, live arrival for Tower A but not Tower B, and read receipts.
 
 ## Done when
 - A buyer sees only notices meant for them, with pinned ones first.
