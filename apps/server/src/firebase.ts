@@ -10,6 +10,18 @@ export interface Admin {
 export const DEFAULT_PROJECT_ID = 'demo-gatehood';
 
 /**
+ * A demo-* project only exists on the emulators, so with no emulator hosts set
+ * (no .env at all, say) point at the local emulators instead of failing on credentials.
+ */
+export function useDemoEmulators(env: NodeJS.ProcessEnv = process.env): void {
+  const projectId = env.FIREBASE_PROJECT_ID || DEFAULT_PROJECT_ID;
+  if (!projectId.startsWith('demo-')) return;
+  if (env.FIRESTORE_EMULATOR_HOST || env.FIREBASE_AUTH_EMULATOR_HOST) return;
+  env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8080';
+  env.FIREBASE_AUTH_EMULATOR_HOST = '127.0.0.1:9099';
+}
+
+/**
  * Connects firebase-admin once per process.
  * - Emulators: when FIRESTORE_EMULATOR_HOST and FIREBASE_AUTH_EMULATOR_HOST are set. No credentials needed.
  * - Real project: otherwise, using application default credentials (GOOGLE_APPLICATION_CREDENTIALS).
@@ -20,6 +32,7 @@ export function initAdmin(): Admin {
 }
 
 function connect(): App {
+  useDemoEmulators();
   const projectId = process.env.FIREBASE_PROJECT_ID || DEFAULT_PROJECT_ID;
   const firestoreEmu = Boolean(process.env.FIRESTORE_EMULATOR_HOST);
   const authEmu = Boolean(process.env.FIREBASE_AUTH_EMULATOR_HOST);
