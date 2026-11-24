@@ -14,7 +14,9 @@ import { colors } from '@/theme/tokens';
 /** Buyer tabs: Home and Updates. */
 export default function BuyerLayout() {
   const { status } = useAuth();
-  if (status !== 'buyer') return <Redirect href="/" />;
+  // Name the group: a bare "/" resolves back into this group and redirects forever.
+  if (status === 'builder') return <Redirect href="/(builder)" />;
+  if (status !== 'buyer') return <Redirect href="/(auth)" />;
 
   return (
     <ReadStateProvider>
@@ -62,7 +64,7 @@ function BuyerTabs() {
     return <LaunchLoading steps={steps} />;
   }
 
-  const unread = unreadCount(feed.items);
+  const unread = unreadCount(feed.items, feed.total);
 
   return (
     <Tabs screenOptions={tabScreenOptions}>

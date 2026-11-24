@@ -4,8 +4,14 @@ import type { Notice } from '@gatehood/shared';
 import { decodeFeed, encodeFeed, feedKey, type FeedFilter, type SavedFeed } from './cacheFormat';
 
 /** Saves one filter's first page so it shows at once next launch and while offline. */
-export async function saveFeed(uid: string, filter: FeedFilter, items: Notice[], savedAt = Date.now()): Promise<void> {
-  await AsyncStorage.setItem(feedKey(uid, filter), encodeFeed(items, savedAt));
+export async function saveFeed(
+  uid: string,
+  filter: FeedFilter,
+  items: Notice[],
+  savedAt = Date.now(),
+  total?: number,
+): Promise<void> {
+  await AsyncStorage.setItem(feedKey(uid, filter), encodeFeed(items, savedAt, total));
 }
 
 const FILTERS: readonly FeedFilter[] = ['all', 'tower', 'unit'];

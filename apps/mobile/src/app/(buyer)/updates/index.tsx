@@ -34,7 +34,7 @@ export default function Updates() {
   const feed = useFeed(filter);
   const { isRead, unreadCount } = useReadState();
   const list = useRef<FlatList<Notice>>(null);
-  const unread = unreadCount(feed.items);
+  const unread = unreadCount(feed.items, filter === 'all' ? feed.total : undefined);
   const now = useNow();
   const me = { towerId, unitId };
 

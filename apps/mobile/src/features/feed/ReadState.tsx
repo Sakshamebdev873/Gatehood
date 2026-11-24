@@ -13,12 +13,29 @@ export type ReadState = {
   isRead(id: string): boolean;
   /** Shows the notice as read at once, then tells the server. Retries later if that fails. */
   markRead(id: string): void;
-  unreadCount(items: Notice[]): number;
+  /**
+   * Unread notices in a feed. Pass `total` (the server's count) only for the All feed: every
+   * notice a buyer can read is in it, so total minus their reads is exact even before every page
+   * has loaded. Without it, this counts the loaded notices only.
+   */
+  unreadCount(items: Notice[], total?: number): number;
 };
 
 const ReadStateContext = createContext<ReadState | null>(null);
 
 const pendingKey = (uid: string) => `reads:pending:v1:${uid}`;
+/** The server's receipts as last seen, so a cold start offline still knows what was read. */
+const knownKey = (uid: string) => `reads:known:v1:${uid}`;
+
+function parseIds(raw: string | null): string[] {
+  if (!raw) return [];
+  try {
+    const ids: unknown = JSON.parse(raw);
+    return Array.isArray(ids) ? ids.filter((id): id is string => typeof id === 'string') : [];
+  } catch {
+    return [];
+  }
+}
 
 /** Worth trying again: no connection, rate limit or a server fault. A 403/404 never will succeed. */
 function retryable(err: unknown): boolean {
@@ -40,11 +57,27 @@ export function ReadStateProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!uid) return;
-    return onSnapshot(
+    let live = false;
+    // Saved receipts first; the live listener replaces them as soon as the server answers.
+    AsyncStorage.getItem(knownKey(uid))
+      .then((raw) => {
+        const saved = parseIds(raw);
+        if (!live && saved.length > 0) setServerIds(new Set(saved));
+      })
+      .catch(() => undefined);
+    const stop = onSnapshot(
       collection(db, 'members', uid, 'reads'),
-      (snap) => setServerIds(new Set(snap.docs.map((d) => d.id))),
+      (snap) => {
+        // Receipts are never removed, so a partial cached snapshot can only add to what was saved.
+        if (snap.metadata.fromCache && snap.empty) return;
+        live = true;
+        const ids = snap.docs.map((d) => d.id);
+        setServerIds(new Set(ids));
+        if (!snap.metadata.fromCache) AsyncStorage.setItem(knownKey(uid), JSON.stringify(ids)).catch(() => undefined);
+      },
       () => undefined, // Offline or denied: keep the last known reads.
     );
+    return stop;
   }, [uid]);
 
   useEffect(() => {
@@ -77,9 +110,7 @@ export function ReadStateProvider({ children }: { children: ReactNode }) {
     AsyncStorage.getItem(pendingKey(uid))
       .then((raw) => {
         if (!active || !raw) return;
-        const ids: unknown = JSON.parse(raw);
-        if (!Array.isArray(ids)) return;
-        for (const id of ids) if (typeof id === 'string') pending.current.add(id);
+        for (const id of parseIds(raw)) pending.current.add(id);
         setLocalIds((prev) => new Set([...prev, ...pending.current]));
         flush();
       })
@@ -119,7 +150,13 @@ export function ReadStateProvider({ children }: { children: ReactNode }) {
       if (!localIds.has(id)) setLocalIds((prev) => new Set(prev).add(id));
       sendRef.current?.(id);
     },
-    unreadCount: (items: Notice[]) => items.reduce((n, item) => (isRead(item.id) ? n : n + 1), 0),
+    unreadCount: (items: Notice[], total?: number) => {
+      const loaded = items.reduce((n, item) => (isRead(item.id) ? n : n + 1), 0);
+      if (total === undefined || total <= items.length) return loaded;
+      const reads = new Set([...serverIds, ...localIds]).size;
+      // Never below what is visibly unread on screen.
+      return Math.max(loaded, total - reads);
+    },
   };
 
   return <ReadStateContext.Provider value={value}>{children}</ReadStateContext.Provider>;

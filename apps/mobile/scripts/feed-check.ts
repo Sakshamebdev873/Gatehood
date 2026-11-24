@@ -100,21 +100,31 @@ async function main() {
 
   const a = await buyer('a', await freeCode('A'));
   const b = await buyer('b', await freeCode('B'));
-  console.log(`Buyer A ${a.me.unitId}, buyer B ${b.me.unitId}`);
+  const c = await buyer('c', await freeCode('C'));
+  console.log(`Buyer A ${a.me.unitId}, buyer B ${b.me.unitId}, buyer C ${c.me.unitId}`);
 
   // Every notice, from the server's side, to know what each buyer should see.
   const all = (await adb.collection('notices').get()).docs.map((d) => toNotice(d.id, d.data()));
 
-  for (const filter of ['all', 'tower', 'unit'] as const) {
-    const keys = filterKeys(filter, a.me);
-    const expected = all.filter((n) => n.audience.some((k) => keys.includes(k)));
-    const { items, pageSizes } = await pageToEnd(a.db, filter, keys);
-    const count = (await getCountFromServer(feedCountQuery(a.db, filter, keys))).data().count;
-    check(items.every((n) => n.audience.some((k) => keys.includes(k))), `${filter}: only notices meant for ${a.me.unitId}`);
-    check(items.length === expected.length && count === expected.length, `${filter}: all ${expected.length} reached by paging; count says ${count}`);
-    check(new Set(items.map((n) => n.id)).size === items.length, `${filter}: no duplicates`);
-    check(sortedOk(items), `${filter}: pinned first, then newest`);
-    check(pageSizes.slice(0, -1).every((s) => s === FEED_PAGE_SIZE), `${filter}: pages ${pageSizes.join('+')}`);
+  // One buyer per tower: each filter returns exactly that buyer's notices and nothing from other towers.
+  for (const who of [a, b, c]) {
+    const otherTowers = ['A', 'B', 'C'].filter((t) => t !== who.me.towerId);
+    for (const filter of ['all', 'tower', 'unit'] as const) {
+      const keys = filterKeys(filter, who.me);
+      const expected = all.filter((n) => n.audience.some((k) => keys.includes(k)));
+      const { items, pageSizes } = await pageToEnd(who.db, filter, keys);
+      const count = (await getCountFromServer(feedCountQuery(who.db, filter, keys))).data().count;
+      const tag = `${who.me.unitId} ${filter}`;
+      check(items.every((n) => n.audience.some((k) => keys.includes(k))), `${tag}: only notices meant for ${who.me.unitId}`);
+      const leaked = items.filter(
+        (n) => n.target.type === 'towers' && n.target.towers.every((t) => otherTowers.includes(t)),
+      );
+      check(leaked.length === 0, `${tag}: no notice aimed only at Tower ${otherTowers.join('/')} (${leaked.length} leaked)`);
+      check(items.length === expected.length && count === expected.length, `${tag}: all ${expected.length} reached by paging; count says ${count}`);
+      check(new Set(items.map((n) => n.id)).size === items.length, `${tag}: no duplicates`);
+      check(sortedOk(items), `${tag}: pinned first, then newest`);
+      check(pageSizes.slice(0, -1).every((s) => s === FEED_PAGE_SIZE), `${tag}: pages ${pageSizes.join('+')}`);
+    }
   }
   const allKeys = filterKeys('all', a.me);
   const firstAll = (await pageToEnd(a.db, 'all', allKeys)).items;
@@ -137,6 +147,7 @@ async function main() {
   };
   const wa = watch(a.db, a.me);
   const wb = watch(b.db, b.me);
+  const wc = watch(c.db, c.me);
   await wait(1500);
   check(wa.state.m.serverSeen && wa.state.m.newCount === 0, 'live: first server snapshot is the baseline (0 new)');
 
@@ -154,8 +165,10 @@ async function main() {
   const newOne = aItems.find((n) => n.title === title);
   check(!!newOne && wa.state.m.newCount === 1, `live: Tower A buyer sees it with "1 new update" (newCount ${wa.state.m.newCount})`);
   check(!itemsOf(wb.state.m).some((n) => n.title === title) && wb.state.m.newCount === 0, 'live: Tower B buyer never sees it');
+  check(!itemsOf(wc.state.m).some((n) => n.title === title) && wc.state.m.newCount === 0, 'live: Tower C buyer never sees it');
   wa.stop();
   wb.stop();
+  wc.stop();
 
   // Read receipts: mark read through the API, twice, and watch the buyer's own reads list.
   if (newOne) {

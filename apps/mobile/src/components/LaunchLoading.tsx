@@ -36,7 +36,6 @@ export function LaunchLoading({ steps = DEFAULT_LAUNCH_STEPS }: { steps?: Launch
           ))}
         </View>
       </View>
-      <Text style={styles.foot}>FIRST LAUNCH ONLY</Text>
     </SafeAreaView>
   );
 }
@@ -66,12 +65,4 @@ const styles = StyleSheet.create({
   dotTodo: { backgroundColor: colors.inset },
   stepText: { fontFamily: fonts.body, fontSize: 14, color: colors.muted },
   stepNow: { fontFamily: fonts.bodySemibold, color: colors.ink },
-  foot: {
-    fontFamily: fonts.mono,
-    fontSize: 10,
-    letterSpacing: 1.6,
-    color: colors.faint,
-    textAlign: 'center',
-    paddingBottom: 16,
-  },
 });

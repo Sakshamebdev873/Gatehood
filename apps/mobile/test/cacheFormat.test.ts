@@ -27,6 +27,11 @@ describe('feed cache format', () => {
     expect(decodeFeed(encodeFeed([], 99))).toEqual({ items: [], savedAt: 99 });
   });
 
+  it('keeps the feed total when there is one, and ignores a bad one', () => {
+    expect(decodeFeed(encodeFeed([], 99, 34))).toEqual({ items: [], savedAt: 99, total: 34 });
+    expect(decodeFeed('{"items":[],"savedAt":1,"total":"many"}')).toEqual({ items: [], savedAt: 1 });
+  });
+
   it('ignores missing, corrupt or wrongly shaped data', () => {
     expect(decodeFeed(null)).toBeNull();
     expect(decodeFeed('not json')).toBeNull();

@@ -1,9 +1,9 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { ChevronLeft } from 'lucide-react-native';
 import { useState, type ReactNode } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { BackLink } from '@/components/BackLink';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { ProgressBar } from '@/components/ProgressBar';
@@ -128,10 +128,7 @@ export default function NoticeStatsScreen() {
     <SafeAreaView edges={['top']} style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.topbar}>
-          <Pressable accessibilityRole="button" onPress={goBack} style={styles.back} hitSlop={8}>
-            <ChevronLeft size={18} color={colors.forest} strokeWidth={2} />
-            <Text style={styles.backText}>Notices</Text>
-          </Pressable>
+          <BackLink label="Notices" onPress={goBack} />
           <Text style={styles.roleChip}>BUILDER</Text>
         </View>
         {content}
@@ -145,8 +142,6 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   content: { padding: 22, gap: 14, paddingBottom: 40 },
   topbar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  back: { flexDirection: 'row', alignItems: 'center', gap: 2 },
-  backText: { fontFamily: fonts.bodySemibold, fontSize: 14, color: colors.forest },
   roleChip: {
     fontFamily: fonts.mono,
     fontSize: 10.5,
@@ -161,7 +156,7 @@ const styles = StyleSheet.create({
   titleBlock: { gap: 6 },
   gap: { gap: 10 },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
-  big: { fontFamily: fonts.display, fontSize: 44, color: colors.ink },
+  big: { fontFamily: fonts.display, fontSize: 44, color: colors.ink, fontVariant: ['lining-nums'] },
   small: { fontFamily: fonts.body, fontSize: 13, color: colors.muted },
   monoSmall: { fontFamily: fonts.mono, fontSize: 12, color: colors.muted },
   towers: { gap: 8, marginTop: 4 },

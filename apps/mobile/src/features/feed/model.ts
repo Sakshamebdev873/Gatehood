@@ -15,6 +15,11 @@ export interface FeedModel<C> {
   serverSeen: boolean;
   /** Notices that arrived live since the last ack. */
   newCount: number;
+  /**
+   * createdAt of the newest notice seen so far. Only a notice newer than this counts as new, so
+   * an old one that moves into the first page (just pinned, or re-created under a new id) doesn't.
+   */
+  newestSeen: number;
   /** Size of the most recently fetched page; a full page means there may be more. */
   lastPageSize: number;
   /** How many pages have been loaded after the first. */
@@ -27,7 +32,16 @@ export interface FeedModel<C> {
 }
 
 export function initialModel<C>(): FeedModel<C> {
-  return { entries: new Map(), page1Ids: [], serverSeen: false, newCount: 0, lastPageSize: 0, extraPages: 0, dropped: [] };
+  return {
+    entries: new Map(),
+    page1Ids: [],
+    serverSeen: false,
+    newCount: 0,
+    newestSeen: 0,
+    lastPageSize: 0,
+    extraPages: 0,
+    dropped: [],
+  };
 }
 
 function sorted<C>(entries: ReadonlyMap<string, Entry<C>>): Entry<C>[] {
@@ -41,10 +55,13 @@ export function applyFirstPage<C>(m: FeedModel<C>, page: Entry<C>[], fromCache: 
   // Only count arrivals once the server has given us a baseline.
   const counting = m.serverSeen && !fromCache;
   let added = 0;
+  let newestSeen = m.newestSeen;
   const entries = new Map(m.entries);
   for (const entry of page) {
-    if (counting && !m.entries.has(entry.notice.id)) added++;
-    entries.set(entry.notice.id, entry);
+    const { id, createdAt } = entry.notice;
+    if (counting && !m.entries.has(id) && createdAt > m.newestSeen) added++;
+    newestSeen = Math.max(newestSeen, createdAt);
+    entries.set(id, entry);
   }
   return {
     ...m,
@@ -52,6 +69,7 @@ export function applyFirstPage<C>(m: FeedModel<C>, page: Entry<C>[], fromCache: 
     page1Ids: ids,
     serverSeen: m.serverSeen || !fromCache,
     newCount: m.newCount + added,
+    newestSeen,
     lastPageSize: m.extraPages === 0 ? page.length : m.lastPageSize,
     dropped: m.page1Ids.filter((id) => !idSet.has(id)),
   };

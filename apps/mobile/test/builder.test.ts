@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildNoticeRequest,
+  joinedInAudience,
   parseUnitIds,
   pct,
   postedLabel,
@@ -135,5 +136,28 @@ describe('buildNoticeRequest', () => {
       ok: false,
       errors: { title: 'Keep the title under 120 characters.', body: 'Keep the text under 4000 characters.' },
     });
+  });
+});
+
+describe('joinedInAudience', () => {
+  const buyers = [
+    { towerId: 'A', unitId: 'A-1204', status: 'joined' as const },
+    { towerId: 'A', unitId: 'A-1204', status: 'joined' as const }, // a co-owner counts too
+    { towerId: 'A', unitId: 'A-0803', status: 'pending' as const },
+    { towerId: 'B', unitId: 'B-0502', status: 'joined' as const },
+    { towerId: 'C', unitId: 'C-0904', status: 'expired' as const },
+  ];
+
+  it('counts every joined buyer for the whole project', () => {
+    expect(joinedInAudience({ type: 'all' }, buyers)).toBe(3);
+  });
+
+  it('counts joined buyers in the chosen towers only', () => {
+    expect(joinedInAudience({ type: 'towers', towers: ['A'] }, buyers)).toBe(2);
+    expect(joinedInAudience({ type: 'towers', towers: ['B', 'C'] }, buyers)).toBe(1);
+  });
+
+  it('counts joined buyers in the chosen units only', () => {
+    expect(joinedInAudience({ type: 'units', unitIds: ['A-0803', 'B-0502'] }, buyers)).toBe(1);
   });
 });

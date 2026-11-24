@@ -2,15 +2,16 @@ import type { Notice } from '@gatehood/shared';
 
 export type FeedFilter = 'all' | 'tower' | 'unit';
 
-export type SavedFeed = { items: Notice[]; savedAt: number };
+/** `total` is the server's count for the whole feed, so the unread badge stays right offline. */
+export type SavedFeed = { items: Notice[]; savedAt: number; total?: number };
 
 /** AsyncStorage key for one user's saved first page of one filter. */
 export function feedKey(uid: string, filter: FeedFilter): string {
   return `feed:v1:${uid}:${filter}`;
 }
 
-export function encodeFeed(items: Notice[], savedAt: number): string {
-  return JSON.stringify({ items, savedAt });
+export function encodeFeed(items: Notice[], savedAt: number, total?: number): string {
+  return JSON.stringify(total === undefined ? { items, savedAt } : { items, savedAt, total });
 }
 
 function isNotice(x: unknown): x is Notice {
@@ -38,7 +39,8 @@ export function decodeFeed(raw: string | null): SavedFeed | null {
     return null;
   }
   if (typeof data !== 'object' || data === null) return null;
-  const { items, savedAt } = data as Record<string, unknown>;
+  const { items, savedAt, total } = data as Record<string, unknown>;
   if (!Array.isArray(items) || typeof savedAt !== 'number' || !items.every(isNotice)) return null;
-  return { items, savedAt };
+  // An older save has no total; that's fine, the badge then counts the saved page.
+  return typeof total === 'number' && total >= 0 ? { items, savedAt, total } : { items, savedAt };
 }

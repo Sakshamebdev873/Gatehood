@@ -11,6 +11,8 @@ export const colors = {
   muted: '#6B6B6B',
   faint: '#9E9E9E',
   line: '#E8E4DC',
+  /** Off-state switch track: dark enough to read on white cards. */
+  switchOff: '#CFC9BD',
   error: '#BE123C',
   dot: '#E07A2F',
   white: '#FFFFFF',

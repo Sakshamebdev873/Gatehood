@@ -30,6 +30,7 @@ import {
   type FeedModel,
   type FeedStatus,
 } from './model';
+import { isGoneError } from './noticeLoad';
 import { feedCountQuery, feedQuery, filterKeys, toNotice, type FeedFilter } from './queries';
 
 export type { FeedFilter } from './queries';
@@ -188,8 +189,8 @@ class FeedController {
       clearTimeout(this.stall);
       const items = page.map((e) => e.notice);
       const savedAt = Date.now();
-      this.cache = { items, savedAt };
-      void saveFeed(this.me.uid, this.filter, items, savedAt)
+      this.cache = { items, savedAt, total: this.total };
+      void saveFeed(this.me.uid, this.filter, items, savedAt, this.total)
         .then(() => {
           this.saved = true;
           this.emit();
@@ -207,8 +208,12 @@ class FeedController {
         this.model = applyRefreshed(this.model, id, snap.exists() ? toEntry(snap) : null);
         this.emit();
       })
-      .catch(() => {
-        // Denied or offline: keep what we have.
+      .catch((err: unknown) => {
+        // The rules deny a deleted notice too, so "gone" means drop it; otherwise it would stay
+        // listed forever beside its replacement. Offline or flaky: keep what we have.
+        if (!isGoneError(err)) return;
+        this.model = applyRefreshed(this.model, id, null);
+        this.emit();
       });
   }
 
@@ -219,6 +224,11 @@ class FeedController {
     getCountFromServer(feedCountQuery(db, this.filter, this.keys))
       .then((res) => {
         this.total = res.data().count;
+        // Keep the saved copy's total in step, for the badge on an offline start.
+        if (this.cache) {
+          this.cache = { ...this.cache, total: this.total };
+          void saveFeed(this.me.uid, this.filter, this.cache.items, this.cache.savedAt, this.total).catch(() => undefined);
+        }
         this.emit();
       })
       .catch(() => undefined);
@@ -241,7 +251,7 @@ class FeedController {
       hasMore: hasMore(this.model),
       loadingMore: this.loadingMore,
       newCount: this.model.newCount,
-      total: this.total,
+      total: this.total ?? this.cache?.total,
       launch: {
         cacheChecked: this.cacheChecked,
         hadCache: this.hadCache,

@@ -1,10 +1,9 @@
 import type { OverviewResponse } from '@gatehood/shared';
 import { router } from 'expo-router';
-import { ChevronLeft } from 'lucide-react-native';
-import { useState } from 'react';
+import { useRef, useState, type ComponentRef, type Ref } from 'react';
 import {
+  Alert,
   KeyboardAvoidingView,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -16,10 +15,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { BackLink } from '@/components/BackLink';
 import { Button } from '@/components/Button';
 import { Segmented } from '@/components/Segmented';
 import { useApiData } from '@/features/builder/hooks';
-import { buildNoticeRequest, type AudienceMode, type DraftErrors } from '@/features/builder/logic';
+import { buildNoticeRequest, targetLabel, type AudienceMode, type DraftErrors } from '@/features/builder/logic';
 import { api, ApiError, NETWORK_MESSAGE } from '@/lib/api';
 import { Body, Display, Eyebrow } from '@/theme/type';
 import { colors, fonts, radius } from '@/theme/tokens';
@@ -33,6 +33,23 @@ const MODES = [
 function goBack() {
   if (router.canGoBack()) router.back();
   else router.replace('/notices');
+}
+
+type NoticeRequest = Extract<ReturnType<typeof buildNoticeRequest>, { ok: true }>['request'];
+type TowerOverview = OverviewResponse['towers'][number];
+
+/** "everyone in all 3 towers (240 units)", "Tower A (80 units)", "units A-1204, B-0302". */
+function audienceSummary(target: NoticeRequest['target'], towers: TowerOverview[]): string {
+  const units = (ids: string[]) => {
+    const n = towers.filter((t) => ids.includes(t.towerId)).reduce((sum, t) => sum + t.units, 0);
+    return n > 0 ? ` (${n} units)` : '';
+  };
+  if (target.type === 'all') {
+    const all = towers.map((t) => t.towerId);
+    return all.length > 0 ? `everyone in all ${all.length} towers${units(all)}` : 'everyone in the project';
+  }
+  if (target.type === 'towers') return `${targetLabel(target)}${units(target.towers)}`;
+  return targetLabel(target).replace(/^Unit/, 'unit');
 }
 
 /** Write a notice, choose who gets it, optionally pin it, and post. */
@@ -49,6 +66,7 @@ export default function NewNotice() {
   const [errors, setErrors] = useState<DraftErrors>({});
   const [serverError, setServerError] = useState<string | null>(null);
   const [posting, setPosting] = useState(false);
+  const bodyRef = useRef<ComponentRef<typeof TextInput>>(null);
 
   const clear = (field: keyof DraftErrors) => {
     setServerError(null);
@@ -60,17 +78,10 @@ export default function NewNotice() {
     setTowers((t) => (t.includes(id) ? t.filter((x) => x !== id) : [...t, id]));
   };
 
-  const post = async () => {
-    const built = buildNoticeRequest({ title, body, pinned, mode, towers, unitsText });
-    if (!built.ok) {
-      setErrors(built.errors);
-      return;
-    }
-    setErrors({});
-    setServerError(null);
+  const send = async (request: NoticeRequest) => {
     setPosting(true);
     try {
-      await api<{ id: string }>('/api/builder/notices', { method: 'POST', body: built.request });
+      await api<{ id: string }>('/api/builder/notices', { method: 'POST', body: request });
       goBack();
     } catch (err) {
       setServerError(err instanceof ApiError ? err.message : NETWORK_MESSAGE);
@@ -78,14 +89,31 @@ export default function NewNotice() {
     }
   };
 
+  // A notice can't be edited or deleted once posted, so name who gets it and ask first.
+  const post = () => {
+    const built = buildNoticeRequest({ title, body, pinned, mode, towers, unitsText });
+    if (!built.ok) {
+      setErrors(built.errors);
+      return;
+    }
+    setErrors({});
+    setServerError(null);
+    const who = audienceSummary(built.request.target, overview.data?.towers ?? []);
+    Alert.alert(
+      built.request.pinned ? 'Post and pin this notice?' : 'Post this notice?',
+      `It goes to ${who} right away. Notices can't be edited or deleted after posting.`,
+      [
+        { text: 'Keep editing', style: 'cancel' },
+        { text: 'Post', onPress: () => void send(built.request) },
+      ],
+    );
+  };
+
   return (
     <SafeAreaView edges={['top']} style={styles.screen}>
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView style={styles.flex} behavior="padding">
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-          <Pressable accessibilityRole="button" onPress={goBack} style={styles.back} hitSlop={8}>
-            <ChevronLeft size={18} color={colors.forest} strokeWidth={2} />
-            <Text style={styles.backText}>Notices</Text>
-          </Pressable>
+          <BackLink label="Notices" onPress={goBack} />
           <Eyebrow>New notice</Eyebrow>
           <Display em="to buyers.">Post an update</Display>
 
@@ -100,8 +128,11 @@ export default function NewNotice() {
             placeholder="Water supply off Thursday, 10am to 2pm"
             maxLength={140}
             returnKeyType="next"
+            submitBehavior="submit"
+            onSubmitEditing={() => bodyRef.current?.focus()}
           />
           <Field
+            ref={bodyRef}
             label="Text"
             error={errors.body}
             value={body}
@@ -175,7 +206,7 @@ export default function NewNotice() {
               accessibilityLabel="Pin to the top"
               value={pinned}
               onValueChange={setPinned}
-              trackColor={{ true: colors.forest, false: colors.line }}
+              trackColor={{ true: colors.forest, false: colors.switchOff }}
               thumbColor={colors.white}
             />
           </View>
@@ -185,14 +216,16 @@ export default function NewNotice() {
               {serverError}
             </Text>
           ) : null}
-          <Button title="Post notice" loading={posting} onPress={() => void post()} />
+          <Button title="Post notice" loading={posting} onPress={post} />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
-function Field({ label, error, style, ...input }: TextInputProps & { label: string; error?: string }) {
+type FieldProps = TextInputProps & { label: string; error?: string; ref?: Ref<ComponentRef<typeof TextInput>> };
+
+function Field({ label, error, style, ...input }: FieldProps) {
   return (
     <View style={styles.group}>
       <Text style={styles.label}>{label}</Text>
@@ -211,8 +244,6 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.ivory },
   flex: { flex: 1 },
   content: { padding: 22, gap: 16, paddingBottom: 40 },
-  back: { flexDirection: 'row', alignItems: 'center', gap: 2, alignSelf: 'flex-start' },
-  backText: { fontFamily: fonts.bodySemibold, fontSize: 14, color: colors.forest },
   group: { gap: 8 },
   label: { fontFamily: fonts.mono, fontSize: 11, letterSpacing: 1.4, color: colors.muted, textTransform: 'uppercase' },
   input: {

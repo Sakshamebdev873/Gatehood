@@ -1,10 +1,10 @@
 import { router } from 'expo-router';
 import { FirebaseError } from 'firebase/app';
 import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { Eye as EyeIcon, EyeOff } from 'lucide-react-native';
 import { useRef, useState, type ComponentRef, type Ref } from 'react';
 import {
   KeyboardAvoidingView,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { BackLink } from '@/components/BackLink';
 import { Button } from '@/components/Button';
 import { NETWORK_MESSAGE } from '@/lib/api';
 import { auth } from '@/lib/firebase';
@@ -71,17 +72,11 @@ export default function BuilderSignIn() {
 
   return (
     <SafeAreaView style={styles.screen}>
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView style={styles.flex} behavior="padding">
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Back to join with a code"
-            hitSlop={10}
-            onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
-            style={styles.back}
-          >
-            <Text style={styles.backText}>‹ Back</Text>
-          </Pressable>
+          <View style={styles.back}>
+            <BackLink label="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/(auth)'))} />
+          </View>
 
           <View style={styles.form}>
             <Eyebrow>Builder team</Eyebrow>
@@ -114,7 +109,7 @@ export default function BuilderSignIn() {
                 setPassword(t);
                 clearError();
               }}
-              secureTextEntry
+              revealable
               autoCapitalize="none"
               autoComplete="current-password"
               textContentType="password"
@@ -137,20 +132,42 @@ export default function BuilderSignIn() {
   );
 }
 
-type FieldProps = TextInputProps & { label: string; invalid?: boolean; ref?: Ref<TextInputRef> };
+type FieldProps = TextInputProps & {
+  label: string;
+  invalid?: boolean;
+  /** A password field with a show / hide button. */
+  revealable?: boolean;
+  ref?: Ref<TextInputRef>;
+};
 
-function Field({ label, invalid, style, ...rest }: FieldProps) {
+function Field({ label, invalid, revealable, secureTextEntry, style, ...rest }: FieldProps) {
+  const [shown, setShown] = useState(false);
+  const Eye = shown ? EyeOff : EyeIcon;
   return (
     <View style={styles.field}>
       <Text style={styles.label}>{label.toUpperCase()}</Text>
-      <TextInput
-        accessibilityLabel={label}
-        placeholderTextColor={colors.faint}
-        autoCorrect={false}
-        spellCheck={false}
-        style={[styles.input, invalid && styles.inputError, style]}
-        {...rest}
-      />
+      <View>
+        <TextInput
+          accessibilityLabel={label}
+          placeholderTextColor={colors.faint}
+          autoCorrect={false}
+          spellCheck={false}
+          secureTextEntry={revealable ? !shown : secureTextEntry}
+          style={[styles.input, revealable && styles.inputWithButton, invalid && styles.inputError, style]}
+          {...rest}
+        />
+        {revealable ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={shown ? 'Hide password' : 'Show password'}
+            onPress={() => setShown((v) => !v)}
+            hitSlop={6}
+            style={styles.reveal}
+          >
+            <Eye size={20} color={colors.muted} strokeWidth={1.8} />
+          </Pressable>
+        ) : null}
+      </View>
     </View>
   );
 }
@@ -160,7 +177,6 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   content: { flexGrow: 1, paddingHorizontal: 28 },
   back: { alignSelf: 'flex-start', paddingTop: 10 },
-  backText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.forest },
   form: { flex: 1, justifyContent: 'center', gap: 14, paddingVertical: 28 },
   field: { gap: 6 },
   label: { fontFamily: fonts.mono, fontSize: 11, letterSpacing: 1.6, color: colors.muted },
@@ -175,6 +191,8 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     paddingHorizontal: 14,
   },
+  inputWithButton: { paddingRight: 52 },
+  reveal: { position: 'absolute', right: 4, top: 0, bottom: 0, width: 44, alignItems: 'center', justifyContent: 'center' },
   inputError: { borderColor: colors.error },
   error: { fontFamily: fonts.body, fontSize: 13, lineHeight: 19, color: colors.error, marginTop: -4 },
 });

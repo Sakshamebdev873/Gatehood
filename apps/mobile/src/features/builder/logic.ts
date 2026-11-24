@@ -6,6 +6,22 @@ export function pct(part: number, whole: number): number {
   return Math.min(100, Math.max(0, Math.round((part / whole) * 100)));
 }
 
+/** The joined status of one invited buyer, as the buyers list returns it. */
+type InvitedBuyer = { towerId: string; unitId: string; status: BuyerStatus };
+
+/**
+ * Joined buyers a notice reaches: the "of N" in "3 of 7 read". Same rule as the stats screen,
+ * which only counts buyers who have joined.
+ */
+export function joinedInAudience(target: NoticeTarget, buyers: readonly InvitedBuyer[]): number {
+  return buyers.filter((b) => {
+    if (b.status !== 'joined') return false;
+    if (target.type === 'towers') return target.towers.includes(b.towerId);
+    if (target.type === 'units') return target.unitIds.includes(b.unitId);
+    return true;
+  }).length;
+}
+
 /** More units than this are counted ("4 units") rather than listed. */
 const LISTED_UNITS = 3;
 
