@@ -7,7 +7,8 @@ A mobile app that keeps flat buyers up to date on their housing project. The **b
 - **Data:** Firestore. The app reads it directly for live updates; security rules keep each buyer to their own notices.
 - **No credentials needed:** by default everything runs on the Firebase emulators.
 
-The design decisions are summed up in [`NOTE.md`](NOTE.md).
+- **Demo video (86 s, both roles):** [`docs/gatehood-demo.mp4`](docs/gatehood-demo.mp4)
+- **Design note (248 words):** [`NOTE.md`](NOTE.md): data model, feed query, read counts at scale, security rules, trade-offs
 
 ## What you need
 
