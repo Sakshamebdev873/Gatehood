@@ -67,7 +67,7 @@ npm run mobile
 
 ## Demo logins and codes
 
-`npm run seed` prints these. The builder login is fixed; the codes are new random ones each run, so use the ones **your** seed printed.
+`npm run seed` prints these. The seed uses a fixed random seed, so every run gives the same codes. Re-run it to reset the used code and the demo data.
 
 ```
 Gatehood demo data ready

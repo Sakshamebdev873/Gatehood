@@ -9,6 +9,7 @@
     "node": ">=20"
   },
   "scripts": {
+    "postinstall": "npm run build:shared",
     "build:shared": "npm run build -w packages/shared",
     "test": "npm test --workspaces --if-present",
     "emulators": "firebase emulators:start --project demo-gatehood --config firebase/firebase.json",
