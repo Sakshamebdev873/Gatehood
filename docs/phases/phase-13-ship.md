@@ -63,3 +63,14 @@ README.md  NOTE.md
 
 ## After this
 Record the video, push to GitHub, and submit the repo link, the video and the note.
+
+## Outcome (2026-11-24)
+- `README.md`, `NOTE.md` (248 words) and `docs/video-script.md` written.
+- `npm test`: shared 30, server 81, mobile 67, all passing.
+- `git ls-files | grep -Ei '\.env$|service-account'` prints nothing.
+- Fresh clone, following the README with no `.env` files: install, emulators, seed, server; the demo codes give 404 / 409 / 410 / sign-in over the LAN IP; `feed-check`, `detail-check` and `builder-check` all pass; the Android bundle exports.
+- Fixes the fresh clone found:
+  - `packages/shared/dist` is gitignored and nothing built it, so the seed, server and app couldn't load it. Root `postinstall` now runs `build:shared`.
+  - The server needed `apps/server/.env` to find the emulators. `initAdmin` now treats a `demo-*` project with no emulator hosts as the local emulators, like the seed already did.
+  - The emulators listened on `127.0.0.1`, which a phone on Wi-Fi can't reach. Firestore and Auth now listen on `0.0.0.0` (the UI stays local).
+- Still to do by hand: the README run on two real phones (Android and iOS), then record the video.
