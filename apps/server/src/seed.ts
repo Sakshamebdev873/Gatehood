@@ -9,7 +9,7 @@ import {
 import type { Auth } from 'firebase-admin/auth';
 import type { DocumentReference, Firestore } from 'firebase-admin/firestore';
 import { pathToFileURL } from 'node:url';
-import { initAdmin } from './firebase.js';
+import { DEFAULT_PROJECT_ID, initAdmin, useDemoEmulators } from './firebase.js';
 import { inviteTtlDays } from './routes/import.js';
 import { redeemInvite } from './routes/invites.js';
 import { markRead, type Reader } from './routes/notices.js';
@@ -350,12 +350,8 @@ function printSummary(s: SeedSummary): void {
 
 async function main(): Promise<void> {
   await import('dotenv/config');
-  const projectId = process.env.FIREBASE_PROJECT_ID || 'demo-gatehood';
-  // A demo-* project only exists on the emulators, so point there when nothing else is set.
-  if (projectId.startsWith('demo-') && !process.env.FIRESTORE_EMULATOR_HOST && !process.env.FIREBASE_AUTH_EMULATOR_HOST) {
-    process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8080';
-    process.env.FIREBASE_AUTH_EMULATOR_HOST = '127.0.0.1:9099';
-  }
+  const projectId = process.env.FIREBASE_PROJECT_ID || DEFAULT_PROJECT_ID;
+  useDemoEmulators();
   const target = process.env.FIRESTORE_EMULATOR_HOST ? `emulators (${projectId})` : `real project ${projectId}`;
   console.log(`Seeding ${target}. This wipes towers, units, invites, members and notices first.`);
 
