@@ -10,7 +10,7 @@ Make the project easy to set up and judge: a README that works on the first try,
 2. **What you need:** Node 20+, Java 11+, Expo Go.
 3. **Quick start on the emulators, with no credentials:** `npm install` → `npm run emulators` → `npm run seed` → `npm run server` → set the LAN IP in `apps/mobile/.env` → `npm run mobile`.
 4. **Demo logins and codes** (from M7).
-5. **Using a real Firebase project:** env variables, and deploying the rules and indexes.
+5. **Using a real Firebase project:** link to `docs/firebase-setup.md`. Register a **Web** app, not Android/iOS, and say why in one line.
 6. **Running the tests.**
 7. **Project structure:** links to these module docs.
 8. **Optional:** deploying the server online.
@@ -23,7 +23,8 @@ Make the project easy to set up and judge: a README that works on the first try,
 | Feed query: audience filter, pinned then newest, 15 per page, live first page | M2, M10 |
 | Read counts: one receipt per buyer, counted once in a transaction; split counters at scale | M6 |
 | Security rules: the app only reads what's meant for it; writes go through the server | M2, M3 |
-| Trade-offs: two processes, the unread badge counts loaded pages only, first-page offline cache, the M2 risk check result | all |
+| Trade-offs: two processes, the unread badge is total minus reads, first-page offline cache, the M2 risk check result | all |
+| Trade-off: Firebase JS SDK (Web config) so it runs in Expo Go; production would move to React Native Firebase for push notifications and native offline storage | M8 |
 
 ## Video script (under 90 seconds)
 1. The builder imports a CSV (M11).

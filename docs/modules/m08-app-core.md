@@ -37,8 +37,15 @@ app.json  .env.example
   - errors become `ApiError { status, code, message }`
   - when there's no network, the message is "Can't reach the server. Check your connection and try again."
 
+## Firebase library decision
+The app uses the **Firebase JS SDK** (configured from a **Web** app in the Firebase console), not React Native Firebase (configured from Android/iOS apps).
+- **Why:** it runs in Expo Go on both Android and iOS with one config, and reviewers need no native builds, Mac or Apple account.
+- **Cost:** no push notifications or native offline database. The last feed is saved to AsyncStorage instead, which covers the brief's offline requirement.
+
+Full comparison: design document section 4.1. Console steps: `docs/firebase-setup.md`.
+
 ## Env variables
-`EXPO_PUBLIC_FIREBASE_*`, `EXPO_PUBLIC_API_URL`, `EXPO_PUBLIC_USE_EMULATORS`, `EXPO_PUBLIC_EMULATOR_HOST`
+`EXPO_PUBLIC_FIREBASE_*` (from the Web app config), `EXPO_PUBLIC_API_URL`, `EXPO_PUBLIC_USE_EMULATORS`, `EXPO_PUBLIC_EMULATOR_HOST`
 
 ## Uses
 M1, plus Expo, expo-router, Firebase JS SDK, AsyncStorage, NetInfo, `@expo-google-fonts/*` and `lucide-react-native`.

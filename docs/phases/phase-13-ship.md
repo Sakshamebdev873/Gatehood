@@ -30,9 +30,10 @@ Package the work so a reviewer can set it up from the README, and write the subm
   - **security rules:** the app can only read, and only what's meant for it. All writes go through the server.
   - **trade-offs:**
     - reviewers run two processes
-    - the unread badge only counts loaded pages
+    - the unread badge is total minus reads, so it can drift by a notice deleted after it was read (notices aren't deleted in this app)
     - the offline cache only holds the first page
     - the outcome of the phase 02 risk check
+    - Firebase JS SDK (Web config) so it runs in Expo Go; production would move to React Native Firebase for push notifications and native offline storage
 - **Video script**, under 90 seconds:
   1. the builder imports the CSV
   2. the builder posts a notice to Tower A

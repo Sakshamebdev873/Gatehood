@@ -44,5 +44,7 @@ M12 Submission documents all of it.
 **Rule of the build:** the app reads Firestore directly for live data. Every write goes through the server (M4, M5, M6).
 
 Related:
+- database choice, collections, strengths and weaknesses: `docs/database.md`
+- Firebase console setup (Web app, not Android): `docs/firebase-setup.md`
 - phase-wise order: `docs/phases/README.md`
 - design: `docs/superpowers/specs/2026-11-23-gatehood-buyer-updates-design.md`
