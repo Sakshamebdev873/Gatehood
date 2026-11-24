@@ -1,15 +1,14 @@
 # Gatehood: design note
 
-**Data model.** Firestore: `towers`, `units` (`A-1204`), `invites/{code}`, `members/{uid}`, `notices`. Each notice stores its target and a derived `audience` array (`all`, `tower:A`, `unit:A-1204`); a buyer's keys are those three, carried as auth claims.
+**Data model.** Firestore holds towers, units, invite codes, members (joined buyers) and notices. Each notice saves who it is for as a list of tags: "all", "tower:A" or "unit:A-1204". Every buyer carries the same three tags for themselves, stored in their login.
 
-**Feed query.** `audience array-contains-any myKeys`, ordered `pinned` desc then `createdAt` desc, 15 per page with `startAfter`. My tower and My unit use `array-contains`. Page one is an `onSnapshot` listener, so new and pinned notices arrive live; read state comes from a listener on `members/{uid}/reads`.
+**Feed query.** The feed asks Firestore for notices whose tags match any of the buyer's tags, pinned first, then newest, 15 at a time. "My tower" and "My unit" ask for one tag only. The first page is a live listener, so a new notice appears without refreshing.
 
-**Read counts.** Opening a notice calls the server, which in one transaction checks the audience, creates `notices/{id}/reads/{uid}` only if missing, and increments `readCount` only then. Repeats and retries count once. "Not read" is joined audience members minus receipts. A single counter takes about one write per second; at scale I'd split it across N shards summed on read.
+**Read counts.** When a buyer opens a notice, the app tells the server. In one transaction the server checks the buyer is allowed to see it, saves a read receipt for that buyer if one doesn't exist yet, and adds 1 to the count only when it saved a new receipt. Opening it twice, or retrying after a network drop, still counts once. "Not read yet" is the joined buyers in the audience minus those with a receipt. One counter handles about one update per second; for a much bigger project I would split it into several counters and add them up.
 
-**Security rules.** Clients write nothing; every write goes through the Admin SDK. Buyers read only notices whose audience meets their claims, plus their own unit and member record. The rules emulator confirmed they accept the `array-contains-any` query, so no merged-query fallback was needed.
+**Security rules.** The app can only read; every write goes through the server. A buyer can read only notices tagged for them, plus their own unit and profile. Tests check that a buyer can't read another tower's notices.
 
 **Trade-offs.**
-- Reviewers run two processes (emulators, server) but need no credentials.
-- The unread badge is total minus reads, so it would drift if read notices were deleted (this app never deletes).
-- Offline shows only the cached first page per filter.
-- Firebase JS SDK (Web config) keeps it in Expo Go; production would move to React Native Firebase for push and native offline storage.
+- Reviewers run two things (Firebase emulators and the server), but need no keys.
+- Offline shows the last saved first page only.
+- It uses the Firebase JavaScript SDK so it runs in Expo Go. A production app would switch to React Native Firebase for push notifications and better offline storage.
