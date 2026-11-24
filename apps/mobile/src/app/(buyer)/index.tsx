@@ -1,4 +1,5 @@
 import { daysUntil } from '@gatehood/shared';
+import { router } from 'expo-router';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -107,6 +108,9 @@ export default function MyUnit() {
             label={audienceLabel(pinned, { towerId, unitId })}
             when={relativeTime(pinned.createdAt, now)}
             read={isRead(pinned.id)}
+            onPress={() =>
+              router.push({ pathname: '/updates/[id]', params: { id: pinned.id } }, { withAnchor: true })
+            }
           />
         ) : null}
 

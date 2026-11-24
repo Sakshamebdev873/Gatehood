@@ -14,6 +14,16 @@ export function audienceLabel(notice: Notice, me: Me): string {
 }
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+/** Full post time for the notice screen: "24 Nov 2026 · 9:12 am". */
+export function fullDate(ms: number): string {
+  const d = new Date(ms);
+  const h = d.getHours();
+  const m = d.getMinutes().toString().padStart(2, '0');
+  const clock = `${h % 12 === 0 ? 12 : h % 12}:${m} ${h < 12 ? 'am' : 'pm'}`;
+  return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()} · ${clock}`;
+}
+
 const MIN = 60_000;
 const HOUR = 60 * MIN;
 const DAY = 24 * HOUR;

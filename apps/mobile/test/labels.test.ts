@@ -1,7 +1,7 @@
 import type { Notice, NoticeTarget } from '@gatehood/shared';
 import { describe, expect, it } from 'vitest';
 
-import { audienceLabel, relativeTime } from '../src/features/feed/labels';
+import { audienceLabel, fullDate, relativeTime } from '../src/features/feed/labels';
 
 const me = { towerId: 'A', unitId: 'A-1204' };
 
@@ -52,5 +52,14 @@ describe('relativeTime', () => {
 
   it('treats a clock slightly ahead of the phone as "now"', () => {
     expect(relativeTime(now + 90_000, now)).toBe('now');
+  });
+});
+
+describe('fullDate', () => {
+  it('shows day, month, year and a 12-hour clock', () => {
+    expect(fullDate(new Date(2026, 10, 24, 9, 5).getTime())).toBe('24 Nov 2026 · 9:05 am');
+    expect(fullDate(new Date(2026, 0, 3, 0, 30).getTime())).toBe('3 Jan 2026 · 12:30 am');
+    expect(fullDate(new Date(2026, 5, 1, 12, 0).getTime())).toBe('1 Jun 2026 · 12:00 pm');
+    expect(fullDate(new Date(2026, 5, 1, 18, 45).getTime())).toBe('1 Jun 2026 · 6:45 pm');
   });
 });
