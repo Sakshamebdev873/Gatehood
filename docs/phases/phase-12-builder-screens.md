@@ -37,11 +37,18 @@ Build every screen the builder needs to import buyers, see who has joined, post 
 
 ## Files
 ```
-apps/mobile/app/(builder)/index.tsx
-apps/mobile/app/(builder)/buyers.tsx
-apps/mobile/app/(builder)/import.tsx
-apps/mobile/app/(builder)/notices/{index,new,[id]}.tsx
+apps/mobile/src/app/(builder)/index.tsx
+apps/mobile/src/app/(builder)/buyers/{_layout,index,import}.tsx
+apps/mobile/src/app/(builder)/notices/{index,new,[id]}.tsx
+apps/mobile/src/features/builder/{logic,queries,hooks}.ts
+apps/mobile/src/components/ProgressBar.tsx
+apps/mobile/test/builder.test.ts
+apps/mobile/scripts/builder-check.ts
 ```
+
+Buyers and Import share a stack inside the Buyers tab, so Back from Import lands on Buyers.
+`scripts/builder-check.ts` runs the two-phone check below on the emulators:
+`npx tsx apps/mobile/scripts/builder-check.ts` (emulators, seed and API running).
 
 ## Steps
 1. Build Towers, then Buyers and Import, then Notices, New notice and Stats.
