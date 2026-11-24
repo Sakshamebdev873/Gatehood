@@ -81,6 +81,20 @@ describe('first page', () => {
     expect(ackNew(m).newCount).toBe(0);
   });
 
+  it('does not count an old notice that moves into the first page as new', () => {
+    let m = applyFirstPage(initialModel<string>(), page(20, 6), false);
+    // n2 was just pinned, so it jumps to the top of the first page.
+    m = applyFirstPage(m, [e(n(2, true)), ...page(20, 7)], false);
+    expect(m.newCount).toBe(0);
+  });
+
+  it('does not count the same notices re-created under new ids as new', () => {
+    let m = applyFirstPage(initialModel<string>(), page(20, 6), false);
+    const recreated = page(20, 6).map((x) => e({ ...x.notice, id: `${x.notice.id}-again` }));
+    m = applyFirstPage(m, recreated, false);
+    expect(m.newCount).toBe(0);
+  });
+
   it('reports ids that left the first page so they can be re-read', () => {
     let m = applyFirstPage(initialModel<string>(), page(20, 6), false);
     m = applyFirstPage(m, page(21, 7), false);

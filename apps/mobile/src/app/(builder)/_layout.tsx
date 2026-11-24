@@ -7,7 +7,9 @@ import { TabIcon, tabScreenOptions } from '@/components/TabIcon';
 /** Builder tabs: Towers, Notices and Buyers. */
 export default function BuilderLayout() {
   const { status } = useAuth();
-  if (status !== 'builder') return <Redirect href="/" />;
+  // Name the group: a bare "/" resolves back into this group and redirects forever.
+  if (status === 'buyer') return <Redirect href="/(buyer)" />;
+  if (status !== 'builder') return <Redirect href="/(auth)" />;
 
   return (
     <Tabs screenOptions={tabScreenOptions}>

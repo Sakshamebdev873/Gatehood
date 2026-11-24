@@ -1,7 +1,8 @@
 import type { OverviewResponse } from '@gatehood/shared';
 import { router } from 'expo-router';
+import { ChevronRight } from 'lucide-react-native';
 import type { ReactNode } from 'react';
-import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAuth } from '@/auth/AuthProvider';
@@ -43,19 +44,31 @@ export default function Towers() {
         {towers.map((t) => {
           const p = pct(t.joined, t.invited);
           return (
-            <Card key={t.towerId} style={styles.card} accessible accessibilityLabel={`${t.name}: ${t.joined} of ${t.invited} invited buyers joined, ${t.units} units`}>
-              <View style={styles.row}>
-                <Display size={24}>{t.name}</Display>
-                <Text style={styles.pct}>{p}%</Text>
-              </View>
-              <ProgressBar value={p} />
-              <View style={styles.row}>
-                <Text style={styles.stat}>
-                  <Text style={styles.strong}>{t.joined}</Text> / {t.invited} joined
-                </Text>
-                <Text style={styles.stat}>{t.units} units</Text>
-              </View>
-            </Card>
+            <Pressable
+              key={t.towerId}
+              accessibilityRole="button"
+              accessibilityLabel={`${t.name}: ${t.joined} of ${t.invited} invited buyers joined, ${t.units} units`}
+              accessibilityHint="Shows this tower's buyers and their codes"
+              onPress={() => router.navigate({ pathname: '/buyers', params: { tower: t.towerId } })}
+              style={({ pressed }) => pressed && styles.pressed}
+            >
+              <Card style={styles.card}>
+                <View style={styles.row}>
+                  <Display size={24}>{t.name}</Display>
+                  <View style={styles.pctWrap}>
+                    <Text style={styles.pct}>{p}%</Text>
+                    <ChevronRight size={18} color={colors.faint} strokeWidth={1.8} />
+                  </View>
+                </View>
+                <ProgressBar value={p} />
+                <View style={styles.row}>
+                  <Text style={styles.stat}>
+                    <Text style={styles.strong}>{t.joined}</Text> / {t.invited} joined
+                  </Text>
+                  <Text style={styles.stat}>{t.units} units</Text>
+                </View>
+              </Card>
+            </Pressable>
           );
         })}
       </>
@@ -86,7 +99,9 @@ const styles = StyleSheet.create({
   content: { padding: 22, gap: 14 },
   card: { gap: 10 },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
+  pctWrap: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   pct: { fontFamily: fonts.mono, fontSize: 12, color: colors.muted },
+  pressed: { opacity: 0.75 },
   stat: { fontFamily: fonts.body, fontSize: 13, color: colors.muted },
   strong: { fontFamily: fonts.bodySemibold, color: colors.ink },
   signOut: { marginTop: 18 },

@@ -1,6 +1,6 @@
 import { daysUntil } from '@gatehood/shared';
 import { router } from 'expo-router';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAuth } from '@/auth/AuthProvider';
@@ -22,6 +22,21 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 /** 1640 → "1,640". */
 function groupThousands(n: number): string {
   return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+/**
+ * Invite codes work once, so signing out means asking the site office for a new code.
+ * Say so before doing it.
+ */
+function confirmSignOut(signOut: () => Promise<void>) {
+  Alert.alert(
+    'Sign out of this phone?',
+    "Your invite code only works once. To sign back in you'll need a new code from the site office.",
+    [
+      { text: 'Stay signed in', style: 'cancel' },
+      { text: 'Sign out', style: 'destructive', onPress: () => void signOut() },
+    ],
+  );
 }
 
 /** My Unit: the buyer's home, construction progress, possession, and the newest pinned notice. */
@@ -79,7 +94,9 @@ export default function MyUnit() {
                 <View style={[styles.barFill, { width: `${tower.progressPct}%` }]} />
               </View>
               <Body muted style={styles.small}>
-                {tower.name} · {tower.progressPct}% complete
+                {tower.progressPct >= 100
+                  ? `${tower.name} · structure complete`
+                  : `${tower.name} · ${100 - tower.progressPct}% to go`}
               </Body>
             </Card>
 
@@ -115,7 +132,7 @@ export default function MyUnit() {
         ) : null}
 
         <View style={styles.signOut}>
-          <Button title="Sign out of this phone" variant="ghost" onPress={() => void signOut()} />
+          <Button title="Sign out of this phone" variant="ghost" onPress={() => confirmSignOut(signOut)} />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -142,7 +159,7 @@ const styles = StyleSheet.create({
   gap8: { gap: 8 },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
   mutedEyebrow: { color: colors.muted },
-  big: { fontFamily: fonts.display, fontSize: 34, lineHeight: 38, color: colors.ink },
+  big: { fontFamily: fonts.display, fontSize: 34, lineHeight: 38, color: colors.ink, fontVariant: ['lining-nums'] },
   month: { fontSize: 26, lineHeight: 38 },
   bar: { height: 6, borderRadius: 3, backgroundColor: colors.inset, overflow: 'hidden' },
   barFill: { height: 6, borderRadius: 3, backgroundColor: colors.forest },

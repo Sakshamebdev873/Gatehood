@@ -3,11 +3,12 @@ import * as Clipboard from 'expo-clipboard';
 import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
 import { router } from 'expo-router';
-import { ChevronLeft, FileText } from 'lucide-react-native';
+import { FileText } from 'lucide-react-native';
 import { useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { BackLink } from '@/components/BackLink';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { api, ApiError, NETWORK_MESSAGE } from '@/lib/api';
@@ -24,7 +25,15 @@ type Step =
 
 async function readPicked(asset: DocumentPicker.DocumentPickerAsset): Promise<string> {
   if (Platform.OS === 'web' && asset.file) return asset.file.text();
-  return new File(asset.uri).text();
+  try {
+    return await new File(asset.uri).text();
+  } catch (err) {
+    // Expo Go on Android copies picks into its own shared cache, outside this app's folder, and
+    // expo-file-system refuses to read there ("Missing 'READ' permission"). fetch can still read it.
+    const res = await fetch(asset.uri).catch(() => null);
+    if (!res) throw err;
+    return res.text();
+  }
 }
 
 function goBack() {
@@ -73,10 +82,7 @@ export default function ImportBuyers() {
   return (
     <SafeAreaView edges={['top']} style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <Pressable accessibilityRole="button" onPress={goBack} style={styles.back} hitSlop={8}>
-          <ChevronLeft size={18} color={colors.forest} strokeWidth={2} />
-          <Text style={styles.backText}>Buyers</Text>
-        </Pressable>
+        <BackLink label="Buyers" onPress={goBack} />
         <Eyebrow>Import buyers</Eyebrow>
         {step.kind === 'pick' ? <PickStep picking={picking} error={step.error} onPick={pick} /> : null}
         {step.kind === 'preview' ? <PreviewStep step={step} onImport={submit} onPickAgain={pick} /> : null}
@@ -177,11 +183,24 @@ function DoneStep({ result, onFinish }: { result: ImportResult; onFinish: () => 
 
   return (
     <>
-      <Display em={result.created === 1 ? '1 new code.' : `${result.created} new codes.`}>Imported</Display>
-      <Body muted>
-        {result.skipped > 0 ? `${result.skipped} already invited, skipped. ` : ''}
-        Send each buyer their code. They type it on the join screen.
-      </Body>
+      {result.created === 0 ? (
+        <>
+          <Display em="to import.">Nothing new</Display>
+          <Body muted>
+            {result.skipped > 0
+              ? `All ${result.skipped} buyers in this file were already invited. Their codes are in the Buyers list.`
+              : 'No row in this file could be imported.'}
+          </Body>
+        </>
+      ) : (
+        <>
+          <Display em={result.created === 1 ? '1 new code.' : `${result.created} new codes.`}>Imported</Display>
+          <Body muted>
+            {result.skipped > 0 ? `${result.skipped} already invited, skipped. ` : ''}
+            Send each buyer their code. They type it on the join screen.
+          </Body>
+        </>
+      )}
       {result.errors.length > 0 ? (
         <Card style={styles.gap}>
           <Text style={styles.eye}>Not imported · {result.errors.length}</Text>
@@ -232,8 +251,6 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.ivory },
   content: { padding: 22, gap: 14, paddingBottom: 40 },
   flex: { flex: 1 },
-  back: { flexDirection: 'row', alignItems: 'center', gap: 2, alignSelf: 'flex-start' },
-  backText: { fontFamily: fonts.bodySemibold, fontSize: 14, color: colors.forest },
   gap: { gap: 8 },
   code: {
     fontFamily: fonts.mono,
@@ -247,7 +264,7 @@ const styles = StyleSheet.create({
   file: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   fileName: { flex: 1, fontFamily: fonts.mono, fontSize: 12, color: colors.muted },
   row: { flexDirection: 'row', alignItems: 'baseline', gap: 8 },
-  big: { fontFamily: fonts.display, fontSize: 40, color: colors.ink },
+  big: { fontFamily: fonts.display, fontSize: 40, color: colors.ink, fontVariant: ['lining-nums'] },
   eye: { fontFamily: fonts.mono, fontSize: 10.5, letterSpacing: 1.4, color: colors.amberDk, marginTop: 4 },
   errRow: { flexDirection: 'row', gap: 10, paddingVertical: 4 },
   line: { width: 58, fontFamily: fonts.mono, fontSize: 12, color: colors.error },

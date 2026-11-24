@@ -2,10 +2,11 @@ import type { Notice } from '@gatehood/shared';
 import { router, useLocalSearchParams } from 'expo-router';
 import { doc, getDoc } from 'firebase/firestore';
 import { useEffect, useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAuth } from '@/auth/AuthProvider';
+import { BackLink } from '@/components/BackLink';
 import { Button } from '@/components/Button';
 import { ErrorRetry, LoadingCards } from '@/components/StateViews';
 import { findSavedNotice } from '@/features/feed/cache';
@@ -88,9 +89,7 @@ export default function NoticeDetail() {
   return (
     <SafeAreaView edges={['top']} style={styles.screen}>
       <View style={styles.bar}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Back to updates" hitSlop={10} onPress={goBack}>
-          <Text style={styles.backText}>‹ Updates</Text>
-        </Pressable>
+        <BackLink label="Updates" onPress={goBack} />
       </View>
 
       {load.status === 'loading' ? (
@@ -144,7 +143,6 @@ export default function NoticeDetail() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.ivory },
   bar: { paddingHorizontal: 22, paddingTop: 14, paddingBottom: 4 },
-  backText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.forest },
   pad: { paddingHorizontal: 22, paddingTop: 12 },
   content: { paddingHorizontal: 22, paddingTop: 14, paddingBottom: 40, gap: 10 },
   meta: { flexDirection: 'row', alignItems: 'center', gap: 10 },

@@ -2,7 +2,7 @@ import { normalizeInviteCode, type ApiErrorCode, type RedeemResponse } from '@ga
 import { Link } from 'expo-router';
 import { signInWithCustomToken } from 'firebase/auth';
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/Button';
@@ -52,7 +52,7 @@ export default function Join() {
 
   return (
     <SafeAreaView style={styles.screen}>
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView style={styles.flex} behavior="padding">
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <View style={styles.form}>
             <Eyebrow>Buyer access</Eyebrow>
@@ -64,7 +64,8 @@ export default function Join() {
               accessibilityHint="Printed on your allotment letter, for example A1204-7KQ"
               value={input}
               onChangeText={(text) => {
-                setInput(text);
+                // Codes are printed in capitals; show them that way even if the keyboard sends lowercase.
+                setInput(text.toUpperCase());
                 if (error) setError(null);
               }}
               placeholder="A1204-7KQ"

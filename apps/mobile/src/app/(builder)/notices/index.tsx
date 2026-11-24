@@ -1,13 +1,13 @@
-import type { Notice } from '@gatehood/shared';
+import type { BuyersResponse, Notice } from '@gatehood/shared';
 import { router } from 'expo-router';
-import { Plus } from 'lucide-react-native';
+import { Pin, Plus } from 'lucide-react-native';
 import { useState, type ReactNode } from 'react';
-import { ActivityIndicator, Alert, FlatList, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Empty, ErrorRetry, LoadingCards } from '@/components/StateViews';
-import { useBuilderNotices } from '@/features/builder/hooks';
-import { targetLabel } from '@/features/builder/logic';
+import { useApiData, useBuilderNotices } from '@/features/builder/hooks';
+import { joinedInAudience, targetLabel } from '@/features/builder/logic';
 import { relativeTime } from '@/features/feed/labels';
 import { api, ApiError, NETWORK_MESSAGE } from '@/lib/api';
 import { useNow } from '@/lib/useNow';
@@ -17,6 +17,8 @@ import { colors, fonts, radius } from '@/theme/tokens';
 /** Every notice posted, newest first, with live read counts and a pin switch. */
 export default function Notices() {
   const list = useBuilderNotices();
+  // Who has joined, to show "3 of 7 read". The list still works without it ("3 read").
+  const buyers = useApiData<BuyersResponse>('/api/builder/buyers').data?.buyers;
   const now = useNow();
   // Pin changes show at once. Each remembers the live value it was made from, and stops
   // applying as soon as the live list moves off that value (it has caught up, or changed elsewhere).
@@ -75,6 +77,7 @@ export default function Notices() {
           <BuilderNoticeRow
             notice={item}
             when={relativeTime(item.createdAt, now)}
+            joined={buyers ? joinedInAudience(item.target, buyers) : undefined}
             pinned={shownPinned(item)}
             busy={item.id in inFlight}
             onPin={(v) => void setPinned(item, v)}
@@ -122,19 +125,24 @@ export default function Notices() {
 type RowProps = {
   notice: Notice;
   when: string;
+  /** Joined buyers it reaches, once known. */
+  joined?: number;
   pinned: boolean;
   busy: boolean;
   onPin: (pinned: boolean) => void;
 };
 
-function BuilderNoticeRow({ notice, when, pinned, busy, onPin }: RowProps) {
+function BuilderNoticeRow({ notice, when, joined, pinned, busy, onPin }: RowProps) {
   const audience = targetLabel(notice.target);
+  // The live count can be a moment ahead of the joined list; never show "5 of 4".
+  const of = joined === undefined ? undefined : Math.max(joined, notice.readCount);
+  const reads = of === undefined ? `${notice.readCount} read` : `${notice.readCount} of ${of} read`;
   return (
     <View style={[styles.row, pinned && styles.pinnedRow]}>
       {pinned ? <View style={styles.pinEdge} /> : null}
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`${audience}. ${notice.title}. ${notice.readCount} read. Open read stats`}
+        accessibilityLabel={`${audience}. ${notice.title}. ${reads}. Open read stats`}
         onPress={() => router.push({ pathname: '/notices/[id]', params: { id: notice.id } })}
         style={({ pressed }) => [styles.rowMain, pressed && styles.pressed]}
       >
@@ -148,20 +156,22 @@ function BuilderNoticeRow({ notice, when, pinned, busy, onPin }: RowProps) {
           {notice.title}
         </Text>
         <Text style={styles.reads}>
-          <Text style={styles.readsNum}>{notice.readCount}</Text> read
+          <Text style={styles.readsNum}>{notice.readCount}</Text>
+          {of === undefined ? ' read' : ` of ${of} read`}
         </Text>
       </Pressable>
-      <View style={styles.pin}>
-        <Switch
-          accessibilityLabel={pinned ? 'Pinned. Turn off to unpin' : 'Pin to the top of buyer feeds'}
-          value={pinned}
-          disabled={busy}
-          onValueChange={onPin}
-          trackColor={{ true: colors.forest, false: colors.line }}
-          thumbColor={colors.white}
-        />
-        <Text style={styles.pinText}>Pin</Text>
-      </View>
+      <Pressable
+        accessibilityRole="switch"
+        accessibilityLabel="Pin to the top of buyer feeds"
+        accessibilityState={{ checked: pinned, disabled: busy }}
+        disabled={busy}
+        onPress={() => onPin(!pinned)}
+        hitSlop={8}
+        style={({ pressed }) => [styles.pin, pinned && styles.pinOn, (pressed || busy) && styles.pressed]}
+      >
+        <Pin size={13} color={pinned ? colors.white : colors.forest} strokeWidth={2.2} fill={pinned ? colors.white : 'none'} />
+        <Text style={[styles.pinText, pinned && styles.pinTextOn]}>{pinned ? 'Pinned' : 'Pin'}</Text>
+      </Pressable>
     </View>
   );
 }
@@ -193,8 +203,21 @@ const styles = StyleSheet.create({
   title: { fontFamily: fonts.bodySemibold, fontSize: 15, lineHeight: 20, color: colors.ink },
   reads: { fontFamily: fonts.mono, fontSize: 12, color: colors.muted },
   readsNum: { fontFamily: fonts.monoMedium, color: colors.forest },
-  pin: { alignItems: 'center', paddingHorizontal: 12, gap: 2 },
-  pinText: { fontFamily: fonts.mono, fontSize: 10, letterSpacing: 1, color: colors.faint },
+  pin: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginRight: 12,
+    paddingVertical: 7,
+    paddingHorizontal: 11,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.line,
+    backgroundColor: colors.card,
+  },
+  pinOn: { backgroundColor: colors.forest, borderColor: colors.forest },
+  pinText: { fontFamily: fonts.bodySemibold, fontSize: 12.5, color: colors.forest },
+  pinTextOn: { color: colors.white },
   fab: {
     position: 'absolute',
     right: 22,
