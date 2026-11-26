@@ -8,7 +8,7 @@ A mobile app that keeps flat buyers up to date on their housing project. The **b
 - **No credentials needed:** by default everything runs on the Firebase emulators.
 
 - **Demo video (86 s, both roles):** [`docs/gatehood-demo.mp4`](docs/gatehood-demo.mp4)
-- **Design note (248 words):** [`NOTE.md`](NOTE.md): data model, feed query, read counts at scale, security rules, trade-offs
+- **Design note (under 250 words):** [`NOTE.md`](NOTE.md): data model, feed query, read counts at scale, security rules, trade-offs
 
 ## What you need
 
